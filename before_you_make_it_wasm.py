@@ -26,11 +26,16 @@ def _():
     else:
         # The GitHub preview is a one-file WASM app. raw.githubusercontent.com
         # permits CORS, allowing this audited companion payload to load there.
-        from pyodide.http import open_url
+        bundle_url = "https://raw.githubusercontent.com/MenuaB/marimo-comp3/main/data/molab_bundle.json"
+        try:
+            from pyodide.http import open_url
+        except ModuleNotFoundError:
+            from urllib.request import urlopen
 
-        bundle_text = open_url(
-            "https://raw.githubusercontent.com/MenuaB/marimo-comp3/main/data/molab_bundle.json"
-        ).read()
+            with urlopen(bundle_url) as response:
+                bundle_text = response.read().decode("utf-8")
+        else:
+            bundle_text = open_url(bundle_url).read()
     evidence_bundle = json.loads(bundle_text)
     return (evidence_bundle,)
 
