@@ -34,14 +34,14 @@ port rather than stopping another process.
 
 ## Run in molab
 
-[Open the live notebook in molab](https://molab.marimo.io/github/MenuaB/marimo-comp3/blob/main/before_you_make_it.py).
+[Open the browser-native notebook in molab](https://molab.marimo.io/github/MenuaB/marimo-comp3/blob/main/before_you_make_it_wasm.py).
 
-molab previews one GitHub notebook file, whereas this project keeps its audited
-helpers and data contract in sibling files. On a GitHub/molab run, the notebook
-therefore retrieves those small pinned helpers and the approved generation
-artifact into a temporary workspace, then obtains the larger source data through
-the existing SHA-256-checked bootstrap. The first run can take longer while
-those verified inputs download; later cell interactions remain reactive.
+GitHub previews run in browser WebAssembly, not a native Python environment.
+Use `before_you_make_it_wasm.py` there: it has no native RDKit or DuckDB
+dependency and loads a compact, audited evidence payload from this repository.
+The full-fidelity `before_you_make_it.py` uses native RDKit depictions and the
+audited-data preparation pipeline, so run it locally or in a full molab Python
+workspace rather than the GitHub/WASM preview.
 
 ## Data bootstrap and cache
 
