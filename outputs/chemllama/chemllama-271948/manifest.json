@@ -1,0 +1,52 @@
+{
+  "generation_run_id": "chemllama-271948",
+  "created_at_utc": "2026-09-18T12:44:18.181157+00:00",
+  "config": {
+    "checkpoint_id": "yerevann/ChemLlama-1B",
+    "checkpoint_revision": "f3f7fc0aa3ad48799d4cc89e3ed822c1d016614e",
+    "cache_dir": "/mnt/weka/mbedrosian/model-cache/chemllama-1b",
+    "prompt_template": "{seed_smiles}",
+    "prompt_semantics": "Undocumented checkpoint: raw SMILES continuation probe; no claimed conditional-similarity tag.",
+    "smoke_raw_samples_total": 6,
+    "main_raw_samples_per_seed": 32,
+    "max_total_raw_samples": 256,
+    "temperature": 0.8,
+    "top_p": 0.95,
+    "top_k": 50,
+    "max_new_tokens": 128,
+    "batch_size": 4,
+    "dtype": "bfloat16",
+    "rng_seed": 20260918,
+    "fingerprint": {
+      "radius": 2,
+      "bits": 2048
+    }
+  },
+  "model_path": "/mnt/weka/mbedrosian/model-cache/chemllama-1b/models--yerevann--ChemLlama-1B/snapshots/f3f7fc0aa3ad48799d4cc89e3ed822c1d016614e",
+  "device": {
+    "visible_device_count": 1,
+    "devices": [
+      {
+        "index": 0,
+        "name": "NVIDIA H100 80GB HBM3",
+        "uuid": "9a5f14ed-9676-4037-1dfe-986f3e158b06"
+      }
+    ],
+    "cuda_version": "12.6",
+    "torch_version": "2.7.1+cu126",
+    "cuda_visible_devices": "0"
+  },
+  "slurm_job_id": "271948",
+  "slurm_node": "gpu03",
+  "platform": "Linux-6.8.0-51-generic-x86_64-with-glibc2.39",
+  "runtime_seconds": 111.622,
+  "counts": {
+    "raw": 96,
+    "valid_unique": 27,
+    "invalid": 69,
+    "duplicate": 0
+  },
+  "raw_sha256": "706ea0ad7b0a74989325131effbf1cb14cc5767fe1d49ed94978ef34d89e0e0b",
+  "candidate_sha256": "ec3bcf7c3348d85f4ccc3e0cc35fef3c823f84c8916a06ae0224555457488935",
+  "prompt_preflight": "Raw continuation only; checkpoint has no model card at pinned revision, so no undocumented chemistry tag or similarity-conditioning claim is made."
+}

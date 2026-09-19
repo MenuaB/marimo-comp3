@@ -1,0 +1,18 @@
+{
+  "checkpoint_id": "yerevann/ChemLlama-1B",
+  "checkpoint_revision": "f3f7fc0aa3ad48799d4cc89e3ed822c1d016614e",
+  "downloaded_files": [
+    "config.json",
+    "generation_config.json",
+    "tokenizer.json",
+    "tokenizer_config.json"
+  ],
+  "bos_token": "<|begin_of_text|>",
+  "eos_token": "<|end_of_text|>",
+  "pad_token": null,
+  "model_max_length": 131072,
+  "prompt_template": "{seed_smiles}",
+  "prompt_semantics": "Undocumented checkpoint: raw SMILES continuation probe; no claimed conditional-similarity tag.",
+  "tokenized_seed_length": 2,
+  "conclusion": "Tokenizer/config inspection only. The repository has no model card at the pinned revision; raw SMILES continuation will be probed on H100 without asserting undocumented tags or conditioning."
+}

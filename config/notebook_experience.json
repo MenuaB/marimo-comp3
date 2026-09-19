@@ -1,0 +1,19 @@
+{
+  "generation_run_id": "chemllama-271948",
+  "generation_candidate_sha256": "ec3bcf7c3348d85f4ccc3e0cc35fef3c823f84c8916a06ae0224555457488935",
+  "gdb17_molecule_count": 166000000000,
+  "gdb17_scope": "Molecules with up to 17 atoms of C, N, O, S and halogens.",
+  "hypothetical_inspection_rate_per_second": 1,
+  "guided_actions": 9,
+  "endpoint_columns": [
+    "LogD",
+    "KSOL",
+    "HLM CLint",
+    "MLM CLint",
+    "Caco-2 Permeability Papp A>B",
+    "Caco-2 Permeability Efflux",
+    "MPPB",
+    "MBPB",
+    "MGMB"
+  ]
+}

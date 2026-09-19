@@ -1,0 +1,118 @@
+{
+  "sources": {
+    "expansion_data_train.csv": {
+      "url": "https://huggingface.co/datasets/openadmet/openadmet-expansionrx-challenge-data/resolve/6b898ccc43d10d25b230fb09e22a6e30c30022b5/expansion_data_train.csv",
+      "sha256": "c5214ad8c8a4d7d4d09082fcce24fe16c97a980a1e0873b91b8c8e474b79f6e4"
+    },
+    "expansion_data_test.csv": {
+      "url": "https://huggingface.co/datasets/openadmet/openadmet-expansionrx-challenge-data/resolve/6b898ccc43d10d25b230fb09e22a6e30c30022b5/expansion_data_test.csv",
+      "sha256": "e21c0ef19795317216287e924e00ca3ef9388b7032a7fa4c7f27e2580372c85e"
+    },
+    "expansion_data_raw.csv": {
+      "url": "https://huggingface.co/datasets/openadmet/openadmet-expansionrx-challenge-data/resolve/6b898ccc43d10d25b230fb09e22a6e30c30022b5/expansion_data_raw.csv",
+      "sha256": "f674ec74cca1146bc386f832a32d4b8d921d3c312f92cb436cc005901c724a3c"
+    },
+    "expansion_log_scaled.csv": {
+      "url": "https://raw.githubusercontent.com/PatWalters/expansion-ml-comparison/06582771d48af8096f6b05a5a247b177189a8fa4/expansion_log_scaled.csv",
+      "sha256": "809d29584bdf4d8359d2bfa3c2673383c7f8fcef4c85ae5429915f53e8d3c858"
+    },
+    "predictions_all.parquet": {
+      "url": "https://raw.githubusercontent.com/PatWalters/expansion-ml-comparison/06582771d48af8096f6b05a5a247b177189a8fa4/results/expansion/predictions_all.parquet",
+      "sha256": "f53d4d674372b55db89b30e5d8e5a3445bef0210ae25b2b92509c317c72ffd54"
+    }
+  },
+  "rows": {
+    "official_train": 5326,
+    "official_test": 2282,
+    "official_raw": 7618,
+    "benchmark_train": 5326,
+    "benchmark_test": 2282,
+    "raw_only_not_in_split": 10,
+    "test_LogD": 2270,
+    "test_KSOL": 2170,
+    "test_both": 2160,
+    "train_both": 4934
+  },
+  "raw_extra_names": [
+    "E-0001829",
+    "E-0002337",
+    "E-0010026",
+    "E-0010061",
+    "E-0010095",
+    "E-0012890",
+    "E-0021672",
+    "E-0021673",
+    "E-0021674",
+    "E-0027111"
+  ],
+  "explicitly_censored_raw_labels_in_split": {
+    "LogD": 18,
+    "KSOL": 122
+  },
+  "official_raw_to_split": "Split molecules have identical SMILES and numeric LogD/KSOL values; explicit inequality labels become missing",
+  "official_to_benchmark": "Exact name and SMILES match; LogD unchanged; LogS = log10(KSOL_uM + 1) - 6",
+  "benchmark_clusters_crossing_split": 59,
+  "structures": {
+    "invalid_smiles": {
+      "train": 0,
+      "test": 0
+    },
+    "multi_component_smiles": {
+      "train": 0,
+      "test": 0
+    },
+    "duplicate_canonical_within_train": 0,
+    "duplicate_canonical_within_test": 0,
+    "exact_canonical_structures_across_split": 0,
+    "eligible_nearest_train_morgan_median": 0.6363636363636364,
+    "eligible_nearest_train_morgan_ge_0_8": 242,
+    "eligible_nearest_train_morgan_n": 2160
+  },
+  "prediction_coverage": {
+    "lgbm/LogD": {
+      "molecules": 2160,
+      "rows": 54000,
+      "min_replicates": 25,
+      "max_replicates": 25
+    },
+    "lgbm/LogS": {
+      "molecules": 2160,
+      "rows": 54000,
+      "min_replicates": 25,
+      "max_replicates": 25
+    },
+    "monroe/LogD": {
+      "molecules": 2160,
+      "rows": 54000,
+      "min_replicates": 25,
+      "max_replicates": 25
+    },
+    "monroe/LogS": {
+      "molecules": 2160,
+      "rows": 54000,
+      "min_replicates": 25,
+      "max_replicates": 25
+    },
+    "chemeleon/LogD": {
+      "molecules": 2160,
+      "rows": 54000,
+      "min_replicates": 25,
+      "max_replicates": 25
+    },
+    "chemeleon/LogS": {
+      "molecules": 2160,
+      "rows": 54000,
+      "min_replicates": 25,
+      "max_replicates": 25
+    }
+  },
+  "pilot_scoring_rule": {
+    "LogD_window_train_IQR": [
+      1.4,
+      2.9
+    ],
+    "KSOL_half_score_train_median_uM": 125.5,
+    "formula": "sqrt(exp(-distance_to_LogD_window / half_window_width) * KSOL_uM/(KSOL_uM + train_median_KSOL_uM))",
+    "status": "illustrative pilot, fixed using training rows only"
+  }
+}

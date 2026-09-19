@@ -1,0 +1,17 @@
+# Local environments and interpreter state
+.venv/
+.venv-inference/
+__pycache__/
+.pytest_cache/
+__marimo__/
+
+# Reproducible caches and generated presentation artifacts
+data/notebook_cache/
+outputs/notebook_validation/
+outputs/story-wasm/
+outputs/first_pressure_plot.png
+
+# Runtime logs and one-off backups
+outputs/chemllama/slurm/
+outputs/chemllama/inference-install.log
+*.backup-*

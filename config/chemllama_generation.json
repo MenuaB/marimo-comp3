@@ -1,0 +1,18 @@
+{
+  "checkpoint_id": "yerevann/ChemLlama-1B",
+  "checkpoint_revision": "f3f7fc0aa3ad48799d4cc89e3ed822c1d016614e",
+  "cache_dir": "/mnt/weka/mbedrosian/model-cache/chemllama-1b",
+  "prompt_template": "{seed_smiles}",
+  "prompt_semantics": "Undocumented checkpoint: raw SMILES continuation probe; no claimed conditional-similarity tag.",
+  "smoke_raw_samples_total": 6,
+  "main_raw_samples_per_seed": 32,
+  "max_total_raw_samples": 256,
+  "temperature": 0.8,
+  "top_p": 0.95,
+  "top_k": 50,
+  "max_new_tokens": 128,
+  "batch_size": 4,
+  "dtype": "bfloat16",
+  "rng_seed": 20260918,
+  "fingerprint": {"radius": 2, "bits": 2048}
+}

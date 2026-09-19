@@ -1,0 +1,9 @@
+{
+  "schema_version": "before-you-make-it-v2",
+  "fingerprint": {"radius": 2, "bits": 2048},
+  "random_shortlist_seed": 20260918,
+  "random_shortlist_draws": 2000,
+  "default_shortlist_count": 50,
+  "shortlist_counts": [10, 50, 100],
+  "score": {"logd_low": 1.4, "logd_high": 2.9, "ksol_midpoint_um": 125.5}
+}

@@ -1,0 +1,41 @@
+[
+  {
+    "candidate_id":"C-0001",
+    "generation_run_id":"chemllama-271947",
+    "raw_sample_index":1,
+    "seed_id":"E-0015392",
+    "smiles":"Cc1c(N)c(-c2ccc(OCCCN3CCCC(C)C3)cc2)cc2cnccc12",
+    "canonical_isomeric_smiles":"Cc1c(N)c(-c2ccc(OCCCN3CCCC(C)C3)cc2)cc2cnccc12",
+    "checkpoint_id":"yerevann\/ChemLlama-1B",
+    "checkpoint_revision":"f3f7fc0aa3ad48799d4cc89e3ed822c1d016614e",
+    "exact_prompt":"Cc1c(N)c(-c2ccc(OC[C@@H](C)N3CCCCC3)cc2)cc2cnccc12",
+    "decoding_settings":{
+      "temperature":0.8,
+      "top_p":0.95,
+      "top_k":50,
+      "max_new_tokens":128,
+      "dtype":"bfloat16"
+    },
+    "random_seed_or_rng_state_scheme":"cuda_manual_seed(20260918 + raw_sample_index)",
+    "validation_status":"valid_unique",
+    "rejection_reason":null,
+    "duplicate_of":null,
+    "similarity_to_seed":0.5797101449,
+    "nearest_training_id":"E-0015610",
+    "nearest_training_similarity":0.9322033898,
+    "computed_descriptors":{
+      "molecular_weight_Da":389.543,
+      "rdkit_clogp":5.2932,
+      "tpsa_A2":51.38,
+      "hbd":1,
+      "hba":4,
+      "rdkit_version":"2025.09.6"
+    },
+    "exact_dataset_match_id_and_split":null,
+    "measured_LogD":null,
+    "measured_KSOL_uM":null,
+    "measured_Caco2_Papp_A_to_B":null,
+    "measured_Caco2_efflux":null,
+    "evidence_status":"proposal_unmeasured"
+  }
+]

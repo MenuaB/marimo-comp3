@@ -1,0 +1,8 @@
+# Isolated H100-only generation environment (Python 3.12)
+torch==2.7.1
+transformers==5.7.0
+huggingface_hub>=0.30
+safetensors>=0.5
+rdkit==2025.9.6
+pandas==2.3.3
+numpy==2.4.3

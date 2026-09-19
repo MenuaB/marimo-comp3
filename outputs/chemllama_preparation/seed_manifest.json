@@ -1,0 +1,33 @@
+{
+  "selection": "highest measured training desirability, one per distinct benchmark cluster, molecule-ID tie-break",
+  "score_rule": "training-derived illustrative LogD/KSOL rule",
+  "seeds": [
+    {
+      "seed_id": "E-0015229",
+      "smiles": "Clc1cncc(O[C@@H]2C[C@@H]3C[C@H]2CN3Cc2n[nH]c3cccnc23)c1",
+      "canonical_isomeric_smiles": "Clc1cncc(O[C@@H]2C[C@@H]3C[C@H]2CN3Cc2n[nH]c3cccnc23)c1",
+      "cluster": 21,
+      "measured_LogD": 2.0,
+      "measured_KSOL_uM": 325.0,
+      "measured_score": 0.8493648472412723
+    },
+    {
+      "seed_id": "E-0015392",
+      "smiles": "Cc1c(N)c(-c2ccc(OC[C@@H](C)N3CCCCC3)cc2)cc2cnccc12",
+      "canonical_isomeric_smiles": "Cc1c(N)c(-c2ccc(OC[C@@H](C)N3CCCCC3)cc2)cc2cnccc12",
+      "cluster": 14,
+      "measured_LogD": 2.5,
+      "measured_KSOL_uM": 324.0,
+      "measured_score": 0.8489999351458408
+    },
+    {
+      "seed_id": "E-0019377",
+      "smiles": "Cc1c(OCCN2CCOCC2)ccc(-c2ccnnc2)c1O",
+      "canonical_isomeric_smiles": "Cc1c(OCCN2CCOCC2)ccc(-c2ccnnc2)c1O",
+      "cluster": 54,
+      "measured_LogD": 1.4,
+      "measured_KSOL_uM": 323.0,
+      "measured_score": 0.8486332378314471
+    }
+  ]
+}
