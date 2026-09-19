@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.12,<3.14"
-# dependencies = ["altair==6.0.0", "marimo==0.24.2", "marimo-chem-utils==0.2.4", "numpy==2.4.3", "pandas==2.3.3", "rdkit==2025.9.6"]
+# dependencies = ["altair==6.0.0", "duckdb==1.4.4", "marimo==0.24.2", "marimo-chem-utils==0.2.4", "numpy==2.4.3", "pandas==2.3.3", "rdkit==2025.9.6"]
 # ///
 """Before You Make It — an enormous search, a few experiments, one decision.
 
@@ -16,6 +16,47 @@ app = marimo.App(width="full", app_title="Before You Make It")
 
 @app.cell
 def _():
+    """Make the GitHub preview self-sufficient without changing local use.
+
+    molab opens a single notebook file from GitHub.  The local project has
+    helper modules, audited metadata, and a pinned generation artifact beside
+    that file, so a preview needs to materialize those small project files on
+    first run.  The larger audited source data remain downloaded by
+    ``ensure_sources()`` with their recorded SHA-256 checks.
+    """
+    import sys
+    import tempfile
+    from pathlib import Path
+    from urllib.request import urlopen
+
+    local_root = Path(__file__).resolve().parent
+    if (local_root / "scripts" / "notebook_data.py").is_file():
+        project_root = local_root
+    else:
+        project_root = Path(tempfile.gettempdir()) / "marimo-comp3-github-main"
+        github_root = "https://raw.githubusercontent.com/MenuaB/marimo-comp3/main"
+        required_files = [
+            "scripts/notebook_data.py",
+            "scripts/experience_data.py",
+            "config/notebook_analysis.json",
+            "config/notebook_experience.json",
+            "outputs/audit.json",
+            "outputs/chemllama/chemllama-271948/manifest.json",
+            "outputs/chemllama/chemllama-271948/candidates.json",
+            "outputs/chemllama/chemllama-271948/raw_generation.jsonl",
+        ]
+        for relative_path in required_files:
+            destination = project_root / relative_path
+            if destination.is_file():
+                continue
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            temporary = destination.with_suffix(destination.suffix + ".tmp")
+            with urlopen(f"{github_root}/{relative_path}") as response:
+                temporary.write_bytes(response.read())
+            temporary.replace(destination)
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+
     import altair as alt
     import marimo as mo
     import numpy as np

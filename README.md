@@ -32,6 +32,17 @@ The CLI prints a localhost URL with its session token. Keep that token private;
 it is neither committed nor disabled. If 2718 is occupied, choose a free local
 port rather than stopping another process.
 
+## Run in molab
+
+[Open the live notebook in molab](https://molab.marimo.io/github/MenuaB/marimo-comp3/blob/main/before_you_make_it.py).
+
+molab previews one GitHub notebook file, whereas this project keeps its audited
+helpers and data contract in sibling files. On a GitHub/molab run, the notebook
+therefore retrieves those small pinned helpers and the approved generation
+artifact into a temporary workspace, then obtains the larger source data through
+the existing SHA-256-checked bootstrap. The first run can take longer while
+those verified inputs download; later cell interactions remain reactive.
+
 ## Data bootstrap and cache
 
 The notebook calls `scripts/notebook_data.py:prepare()` on startup. It checks
