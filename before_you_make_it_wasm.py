@@ -16,17 +16,35 @@ app = marimo.App(width="full", app_title="Before You Make It")
 
 @app.cell
 def _():
+    import hashlib
     import json
     from pathlib import Path
 
     local_bundle = Path(__file__).resolve().parent / "data" / "molab_bundle.json"
-    if not local_bundle.is_file():
-        raise RuntimeError(
-            "The visual-v3 portable bundle is not beside this notebook. "
-            "Run scripts/build_molab_bundle.py locally. The unpublished bundle "
-            "is intentionally not fetched from a mutable GitHub branch."
+    bundle_revision = "20c384088c9154ba80e7adf3280542053633664d"
+    bundle_sha256 = "ec008e2c70353f27afdc9625fbd975e00eeceb174de96dca4488dcae683dd26d"
+    if local_bundle.is_file():
+        bundle_bytes = local_bundle.read_bytes()
+    else:
+        bundle_url = (
+            "https://raw.githubusercontent.com/MenuaB/marimo-comp3/"
+            f"{bundle_revision}/data/molab_bundle.json"
         )
-    visual_payload = json.loads(local_bundle.read_text())
+        try:
+            from pyodide.http import open_url
+        except ModuleNotFoundError:
+            from urllib.request import urlopen
+
+            with urlopen(bundle_url) as response:
+                bundle_bytes = response.read()
+        else:
+            bundle_bytes = open_url(bundle_url).read().encode("utf-8")
+    actual_sha256 = hashlib.sha256(bundle_bytes).hexdigest()
+    if actual_sha256 != bundle_sha256:
+        raise ValueError(
+            f"Portable bundle hash mismatch: {actual_sha256}; expected {bundle_sha256}"
+        )
+    visual_payload = json.loads(bundle_bytes)
     if visual_payload.get("schema_version") != "before-you-make-it-visual-v3":
         raise ValueError("Portable bundle schema mismatch; rebuild visual-v3")
     return (visual_payload,)

@@ -20,12 +20,11 @@ question.
   compressed RDKit SVG depictions, provenance, and the exact JS/CSS widget
   assets for portable parity.
 
-The public molab URL will be:
+The public molab URL is:
 [open the portable notebook](https://molab.marimo.io/github/MenuaB/marimo-comp3/blob/main/before_you_make_it_wasm.py).
-This workspace is not authorized to push. The revised notebook and v3 bundle
-therefore require an explicit publication commit before that public URL can be
-claimed as tested. Local portable execution is tested end to end; no private
-authenticated molab route was available.
+The portable notebook loads the checked-in bundle locally when available and
+otherwise fetches the published bundle from an immutable commit, verifying its
+SHA-256 digest before use.
 
 ## Install and run
 
@@ -45,10 +44,10 @@ python3.13 -m venv .venv
 .venv/bin/marimo run before_you_make_it_wasm.py --no-sandbox --headless --port 2721
 ```
 
-The portable notebook intentionally refuses to fetch an unpublished payload
-from mutable `main`. Keep `before_you_make_it_wasm.py` and
-`data/molab_bundle.json` together. After publication, test the actual molab URL
-before submission.
+The portable notebook never fetches its payload from mutable `main`. Keep
+`before_you_make_it_wasm.py` and `data/molab_bundle.json` together when making
+bundle changes, then update the pinned commit and digest in the portable entry
+point.
 
 ## What is custom
 

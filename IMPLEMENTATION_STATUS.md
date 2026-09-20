@@ -45,17 +45,9 @@ The final measured startup/interaction timings are recorded in each
 `interaction_log.json`; they are environment observations, not performance
 claims.
 
-## Remaining external gate
+## Publication status
 
-No authorized private molab route was available, and this task does not permit a
-public push. Consequently, the actual hosted molab URL has not executed the
-unpublished visual-v3 notebook/bundle. The local portable route is fully
-interactive and uses the intended browser-safe dependencies, but final
-submission still requires:
-
-1. publish `before_you_make_it_wasm.py` and `data/molab_bundle.json` together;
-2. open the public molab URL from a fresh cache;
-3. run the same nine-action browser checklist there;
-4. record the hosted result without storing access tokens.
-
-This is the only known execution gap; it is not represented as completed.
+The visual-v3 notebook and bundle are published on `main`. The portable entry
+point uses the checked-in bundle when present and an immutable, SHA-256-verified
+GitHub bundle fallback when the host loads only the notebook file. Local native
+and portable browser paths have passed the complete nine-action checklist.
