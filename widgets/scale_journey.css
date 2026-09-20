@@ -1,0 +1,58 @@
+.bymi-scale {
+  --ink: #17212b;
+  --muted: #5d6a73;
+  --paper: #f7f4ee;
+  --panel: #fffdfa;
+  --line: #d9d3c8;
+  --aqua: #167d78;
+  --aqua-soft: #d9efeb;
+  --gold: #d79b2b;
+  color: var(--ink);
+  font-family: "PT Sans", sans-serif;
+  background: var(--paper);
+  border-radius: 24px;
+  padding: clamp(18px, 3vw, 34px);
+  overflow: hidden;
+}
+.bymi-scale * { box-sizing: border-box; }
+.bymi-scale__header { display: flex; align-items: end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.bymi-scale__eyebrow { margin: 0 0 6px; color: var(--aqua); font-size: 12px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
+.bymi-scale h2 { margin: 0; max-width: 760px; font: 600 clamp(25px, 4vw, 48px)/1.05 "Lora", serif; letter-spacing: -.025em; }
+.bymi-scale__controls { display: flex; gap: 8px; flex-wrap: wrap; }
+.bymi-scale button { appearance: none; border: 1px solid var(--ink); border-radius: 999px; padding: 10px 16px; min-height: 42px; color: var(--ink); background: transparent; font: 650 14px/1 inherit; }
+.bymi-scale button:hover { background: var(--panel); }
+.bymi-scale button:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+.bymi-scale button[data-primary="true"] { color: white; background: var(--ink); }
+.bymi-scale__stage { position: relative; min-height: 350px; margin-top: 24px; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: clamp(16px, 3vw, 28px); }
+.bymi-scale__count { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.bymi-scale__number { font: 600 clamp(30px, 6vw, 66px)/1 "Lora", serif; letter-spacing: -.035em; }
+.bymi-scale__unit { color: var(--muted); font-size: 13px; }
+.bymi-scale__field { min-height: 205px; display: grid; place-items: center; perspective: 900px; overflow: hidden; }
+.bymi-scale__grid { display: grid; grid-template-columns: repeat(10, 10px); gap: 4px; padding: 16px; transform-origin: center; transition: transform 650ms cubic-bezier(.2,.8,.2,1); }
+.bymi-scale__cell { width: 10px; height: 10px; border-radius: 2px; background: var(--aqua); opacity: .92; }
+.bymi-scale__cell[data-empty="true"] { opacity: .1; }
+.bymi-scale__caption { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: end; border-top: 1px solid var(--line); padding-top: 14px; }
+.bymi-scale__caption p { margin: 0; max-width: 720px; color: var(--muted); font-size: 14px; line-height: 1.5; }
+.bymi-scale__steps { display: flex; gap: 5px; }
+.bymi-scale__step { width: 24px; height: 4px; border-radius: 4px; background: var(--line); }
+.bymi-scale__step[data-active="true"] { background: var(--aqua); }
+.bymi-scale__evidence { display: grid; grid-template-columns: minmax(210px, .72fr) 1.28fr; gap: 22px; align-items: center; min-height: 270px; }
+.bymi-scale__molecule { background: #fff; border-radius: 14px; min-height: 190px; display: grid; place-items: center; padding: 10px; }
+.bymi-scale__molecule svg { width: 100%; height: auto; max-height: 190px; }
+.bymi-scale__strip { display: grid; grid-template-columns: repeat(9, minmax(28px, 1fr)); gap: 6px; margin: 14px 0 22px; }
+.bymi-scale__slot { aspect-ratio: 1; display: grid; place-items: center; border-radius: 7px; border: 1px solid var(--line); color: var(--muted); font-size: 9px; font-weight: 700; }
+.bymi-scale__slot[data-filled="true"] { background: var(--aqua-soft); border-color: var(--aqua); color: var(--ink); }
+.bymi-scale__coverage { display: grid; grid-template-columns: repeat(9, 1fr); gap: 6px; align-items: end; height: 105px; }
+.bymi-scale__coverage > div { height: 100%; display: grid; grid-template-rows: 1fr auto; gap: 4px; }
+.bymi-scale__coverage-col { height: 100%; display: flex; align-items: end; background: #ebe7df; border-radius: 5px 5px 2px 2px; overflow: hidden; }
+.bymi-scale__coverage-fill { width: 100%; background: var(--aqua); }
+.bymi-scale__summary { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 10px; color: var(--muted); font-size: 13px; }
+.bymi-scale__summary strong { display: block; color: var(--ink); font: 600 24px/1.2 "Lora", serif; }
+@media (max-width: 680px) {
+  .bymi-scale__evidence { grid-template-columns: 1fr; }
+  .bymi-scale__molecule { min-height: 150px; }
+  .bymi-scale__caption { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bymi-scale__grid { transition: none; }
+}

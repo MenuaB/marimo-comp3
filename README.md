@@ -1,97 +1,119 @@
 # Before You Make It
 
-Native [marimo](https://marimo.io/) notebook for a measured-data investigation
-of OpenADMET ExpansionRx: select held-out molecules from saved Morgan +
-LightGBM predictions, reveal their published measurements, inspect Caco-2
-evidence and training context, then return to cached ChemLlama proposals.
+**Fifty experiments. Twenty-five maps. One next decision.**
 
-## What it does
+A nine-action marimo story about choosing a small retrospective molecular
+shortlist when saved model fits disagree, seeing what measurement changes, and
+returning to one unmeasured cached ChemLlama proposal with a better next
+question.
 
-`before_you_make_it.py` is a nine-action guided experience: bounded chemical
-space; real measured evidence; a seed-linked cached ChemLlama proposal; a
-committed prediction-only top fifty; separate released LogD/KSOL and Caco-2
-discoveries; coherent inspection; and a return to the same proposal with a
-next-assay choice. The viewer never loads a checkpoint or performs inference:
-published saved predictions apply only to released test molecules; generated
-proposals retain unknown experimental fields.
+## Entry points
 
-## Install and launch
+- `before_you_make_it.py` — native local notebook. It loads the verified,
+  precomputed visual payload and the same custom renderer used by the portable
+  path.
+- `before_you_make_it_wasm.py` — intended competition/molab entry point. It is
+  browser-safe: no RDKit, DuckDB, weights, GPU, or inference is needed while
+  viewing.
+- `data/molab_bundle.json` — schema
+  `before-you-make-it-visual-v3`, containing fit nominations, evidence records,
+  compressed RDKit SVG depictions, provenance, and the exact JS/CSS widget
+  assets for portable parity.
 
-Tested with **Python 3.13.12**. The project-local `.venv` is intentional.
+The public molab URL will be:
+[open the portable notebook](https://molab.marimo.io/github/MenuaB/marimo-comp3/blob/main/before_you_make_it_wasm.py).
+This workspace is not authorized to push. The revised notebook and v3 bundle
+therefore require an explicit publication commit before that public URL can be
+claimed as tested. Local portable execution is tested end to end; no private
+authenticated molab route was available.
+
+## Install and run
+
+Tested with Python 3.13.12 and the pinned environment in
+`requirements-notebook.lock.txt`.
 
 ```sh
-cd /mnt/weka/mbedrosian/code/marimo
+cd /home/mbedrosian/code/marimo
 python3.13 -m venv .venv
 .venv/bin/python -m pip install -r requirements-notebook.in
-.venv/bin/python -m pip check
-.venv/bin/python -m pip freeze > requirements-notebook.lock.txt
-.venv/bin/marimo edit before_you_make_it.py --no-sandbox --watch --headless --host 127.0.0.1 --port 2718
+.venv/bin/python scripts/build_molab_bundle.py
+
+# Native
+.venv/bin/marimo run before_you_make_it.py --no-sandbox --headless --port 2720
+
+# Portable/WASM companion, validated locally against the same bundle
+.venv/bin/marimo run before_you_make_it_wasm.py --no-sandbox --headless --port 2721
 ```
 
-The CLI prints a localhost URL with its session token. Keep that token private;
-it is neither committed nor disabled. If 2718 is occupied, choose a free local
-port rather than stopping another process.
+The portable notebook intentionally refuses to fetch an unpublished payload
+from mutable `main`. Keep `before_you_make_it_wasm.py` and
+`data/molab_bundle.json` together. After publication, test the actual molab URL
+before submission.
 
-## Run in molab
+## What is custom
 
-[Open the browser-native notebook in molab](https://molab.marimo.io/github/MenuaB/marimo-comp3/blob/main/before_you_make_it_wasm.py).
+`widgets/molecule_evidence.py`, `molecule_evidence.js`, and
+`molecule_evidence.css` implement `MoleculeEvidenceLens`, which keeps molecular
+identity coherent across:
 
-GitHub previews run in browser WebAssembly, not a native Python environment.
-Use `before_you_make_it_wasm.py` there: it has no native RDKit or DuckDB
-dependency and loads a compact, audited evidence payload from this repository.
-The full-fidelity `before_you_make_it.py` uses native RDKit depictions and the
-audited-data preparation pipeline, so run it locally or in a full molab Python
-workspace rather than the GitHub/WASM preview.
+- the fixed-order 256-molecule nomination union while one fit's fifty changes;
+- an explicit ensemble-fifty commitment;
+- same-ID predicted-to-measured motion in LogD/KSOL space;
+- a separate Caco-2 view for that unchanged fifty;
+- the retained generated candidate and candidate-specific next-assay record.
 
-## Data bootstrap and cache
+`ScaleJourney` uses counted level-of-detail groups, a skippable/reduced-motion
+route, a real training molecule's nine-slot evidence strip, and collection-wide
+endpoint coverage. Both components synchronize discrete state to Python via
+`mo.ui.anywidget`; animation progress stays browser-local.
 
-The notebook calls `scripts/notebook_data.py:prepare()` on startup. It checks
-local SHA-256 values against `outputs/audit.json`; if a pinned input is absent,
-it downloads precisely the audited revision atomically and then verifies the
-digest. Derived tables live in `data/notebook_cache/`, whose manifest includes
-source hashes, score settings, RDKit version, and cache schema. Deleting only
-that cache regenerates it; do not replace or delete the historical `outputs/`
-audit/pilot files.
+## Scientific facts exposed
 
-The notebook and helper must travel together in a portable bundle. The helper
-is intentionally local because tests and notebook share one verified data path.
+- 7,608 released train + test records; nine endpoint columns; 36,003 populated
+  numeric cells of 68,472 possible in the ML-ready tables.
+- 2,160 held-out records with paired LogD/KSOL and 25 saved LGBM repeat/fold
+  fits per endpoint.
+- Fit-specific top-fifty lists nominate 256 distinct molecules; only
+  `E-0024329` appears in all 25.
+- The ensemble fifty yields 41 measured target passes. Exact random expectation:
+  `50 × 905 / 2,160 = 20.949074…`.
+- `E-0024329` has ensemble-predicted LogD 1.999 and KSOL 317.812 µM, versus
+  measured LogD 0.70 and KSOL 269.0 µM. Unanimous nomination is not guaranteed
+  measured success, while the complete selection remains usefully enriched.
+- The same fifty contain 38 paired numeric Caco-2 records; 33 belong to the 41
+  initial target passes. Missing evidence is not failure or zero.
+
+The fits share a method and overlapping training data. They are selection
+sensitivity views, not independent experts or calibrated uncertainty. The
+score and thresholds are illustrative, not efficacy or clinical claims.
 
 ## Verify
 
 ```sh
-.venv/bin/marimo check before_you_make_it.py
+.venv/bin/marimo check before_you_make_it.py before_you_make_it_wasm.py
 .venv/bin/python -m pytest
-mkdir -p outputs/notebook_validation
-.venv/bin/marimo export html before_you_make_it.py --no-sandbox -o outputs/notebook_validation/notebook_snapshot.html --force
+.venv/bin/python scripts/build_molab_bundle.py --force
+
+.venv/bin/marimo export html before_you_make_it.py --no-sandbox \
+  -o outputs/notebook_validation/before-you-make-it-native.html --force
+.venv/bin/marimo export html before_you_make_it_wasm.py --no-sandbox \
+  -o outputs/notebook_validation/before-you-make-it-portable.html --force
 ```
 
-For interaction verification, use a fresh browser session and follow the nine
-actions in [the state-machine note](docs/story_state_machine.md). Confirm that
-changing seed changes the compatible cached gallery, then retain the chosen
-candidate through the separate retrospective reveals and assay-choice record.
-The export is an execution snapshot, not a substitute for a live walkthrough.
+The live browser harness is `scripts/validate_story_browser.py`. It records
+state-aware screenshots and interaction logs under `outputs/notebook_validation/`.
+See `docs/submission_walkthrough.md` and `docs/story_state_machine.md`.
 
-## Offline ChemLlama generation
+## Generation, licensing, and AI assistance
 
-The isolated `.venv-inference` is for offline inference only. It uses Python
-3.12, `transformers==5.7.0`, and the pinned
-`yerevann/ChemLlama-1B@f3f7fc0aa3ad48799d4cc89e3ed822c1d016614e` checkpoint.
-Run it only through `scripts/run_chemllama_h100.sbatch`, which rejects every
-non-H100 CUDA device before model loading. Each run writes append-only raw
-records, a manifest, and a lightweight candidate table under
-`outputs/chemllama/<run-id>/`; the notebook loads only that cached table.
-See `CHEMLACTICA_HANDOFF.md` and `DATA_CONTRACT.md` for evidence boundaries.
+Viewing never runs generation. The preserved integrated run is
+`chemllama-271948`: 96 raw samples on an NVIDIA H100 80GB HBM3, 27 unique valid
+candidates, 69 invalid samples, and zero duplicates. The raw-SMILES continuation
+probe does not establish documented conditional analog optimization; candidate
+experiments remain unknown.
 
-The integrated run is `chemllama-271948`: 96 raw samples on an NVIDIA H100
-80GB HBM3, 27 unique valid candidates, 69 invalid samples, and no duplicates.
-Those candidates are unmeasured proposals, not experimental ChemLlama results.
-
-## Attribution and limits
-
-The official ExpansionRx data and its source license, plus the pinned Pat
-Walters benchmark prediction revision, are recorded in `outputs/audit.json`.
-The notebook uses `marimo-chem-utils` for molecular navigation and grids.
-AI assistance was used to implement the notebook; all reported score outputs
-are recomputed from the pinned released inputs. The illustrative score,
-similarity, and any structure-review cue are not evidence of efficacy, safety,
-synthesizability, or clinical success.
+OpenADMET/ExpansionRx is CC BY 4.0. Exact source revisions and hashes are in
+`outputs/audit.json`; the Pat Walters benchmark revision is pinned there too.
+RDKit generates original structure depictions. AI assistance was used to
+implement and test the custom notebook and widget code; all scientific values
+are recomputed from pinned released inputs.

@@ -25,7 +25,8 @@ DATA = ROOT / "data"
 CACHE = DATA / "notebook_cache"
 AUDIT_PATH = ROOT / "outputs" / "audit.json"
 ANALYSIS_CONFIG_PATH = ROOT / "config" / "notebook_analysis.json"
-SCHEMA_VERSION = "before-you-make-it-v2"
+SCHEMA_VERSION = "before-you-make-it-v3"
+NOMINATION_SCHEMA_VERSION = "fit-nominations-v1"
 FRACTIONS = (0.50, 0.25, 0.10, 0.05, 0.02)
 RANDOM_SEED = 20260918
 
@@ -223,6 +224,179 @@ def selection_stability(fit_predictions: pd.DataFrame, constants: dict[str, floa
                 .groupby(["repeat", "fold"], group_keys=False).head(count))
     frequency = selected.groupby("molecule_id").size().rename("selection_stability_count").reset_index()
     return frequency
+
+
+def _fit_key(repeat: int, fold: int) -> str:
+    return f"repeat-{int(repeat) + 1}-fold-{int(fold) + 1}"
+
+
+def build_fit_nomination_data(
+    cohort: pd.DataFrame | None = None,
+    *,
+    count: int = 50,
+    force: bool = False,
+) -> dict[str, object]:
+    """Build the fixed-fit nomination display data from pinned predictions.
+
+    Endpoint predictions are paired by their actual ``(molecule, repeat,
+    fold)`` keys before scoring.  Outcome columns are intentionally omitted
+    from this prediction-only structure; disclosure summaries are assembled
+    separately by ``build_visual_payload``.
+    """
+    if count != 50:
+        raise ValueError("The visual-story nomination capacity is fixed at 50")
+    hashes = ensure_sources()
+    prepared_cohort, _, manifest = prepare()
+    if cohort is None:
+        cohort = prepared_cohort
+    required_columns = {
+        "molecule_id",
+        "pred_score",
+        "measured_threshold_pass",
+    }
+    missing_columns = required_columns - set(cohort.columns)
+    if missing_columns:
+        raise ValueError(f"Cohort is missing nomination columns: {sorted(missing_columns)}")
+    cohort_ids = cohort.molecule_id.astype(str).tolist()
+    cohort_identity = hashlib.sha256("\n".join(cohort_ids).encode()).hexdigest()
+    identity = {
+        "schema_version": NOMINATION_SCHEMA_VERSION,
+        "prediction_sha256": hashes["predictions_all.parquet"],
+        "analysis": analysis_config(),
+        "cohort_id_sha256": cohort_identity,
+        "cohort_size": len(cohort_ids),
+        "capacity": count,
+        "tie_break": "score descending, molecule_id ascending",
+    }
+    cache_path = CACHE / "fit_nominations.json"
+    if not force and cache_path.is_file():
+        cached = json.loads(cache_path.read_text())
+        if cached.get("identity") == identity:
+            return cached
+
+    connection = duckdb.connect()
+    predictions = connection.execute(
+        "SELECT method, endpoint, repeat, fold, Name, SMILES, y_true, y_pred "
+        "FROM read_parquet(?) WHERE method = 'lgbm' AND endpoint IN ('LogD', 'LogS')",
+        [str(DATA / "predictions_all.parquet")],
+    ).df()
+    # Stored y_true provenance is checked against the pinned prepared source,
+    # not any caller-supplied outcome columns. This keeps nomination logic
+    # prediction-only while still rejecting a corrupted prediction artifact.
+    expected = prepared_cohort[["molecule_id", "obs_LogD", "obs_LogS"]].copy()
+    _, fit_predictions = _validate_predictions(predictions, expected)
+    fit_predictions["fit_score"] = score(
+        fit_predictions.pred_fit_LogD,
+        fit_predictions.pred_fit_LogS,
+        **manifest["constants"],
+    )
+    fit_predictions["pred_fit_KSOL_uM"] = ksol_from_logs(
+        fit_predictions.pred_fit_LogS
+    )
+    fit_predictions["fit_key"] = [
+        _fit_key(repeat, fold)
+        for repeat, fold in zip(fit_predictions.repeat, fit_predictions.fold)
+    ]
+    fit_rows = (
+        fit_predictions[["repeat", "fold", "fit_key"]]
+        .drop_duplicates()
+        .sort_values(["repeat", "fold"], kind="stable")
+    )
+    fit_keys = fit_rows.fit_key.tolist()
+    if len(fit_keys) != 25:
+        raise ValueError(f"Expected 25 fit keys, found {len(fit_keys)}")
+
+    nominations: dict[str, list[str]] = {}
+    inclusion: dict[str, int] = {}
+    for fit_key in fit_keys:
+        selected = (
+            fit_predictions.loc[fit_predictions.fit_key == fit_key]
+            .sort_values(
+                ["fit_score", "molecule_id"],
+                ascending=[False, True],
+                kind="stable",
+            )
+            .head(count)
+        )
+        ids = selected.molecule_id.astype(str).tolist()
+        if len(ids) != count or len(set(ids)) != count:
+            raise ValueError(f"Fit {fit_key} did not produce {count} unique nominations")
+        nominations[fit_key] = ids
+        for molecule_id in ids:
+            inclusion[molecule_id] = inclusion.get(molecule_id, 0) + 1
+
+    ensemble_ids = shortlist(cohort, count).molecule_id.astype(str).tolist()
+    ensemble_set = set(ensemble_ids)
+    score_by_id = cohort.set_index("molecule_id").pred_score.to_dict()
+    union_order = sorted(
+        inclusion,
+        key=lambda molecule_id: (
+            -inclusion[molecule_id],
+            -float(score_by_id[molecule_id]),
+            molecule_id,
+        ),
+    )
+    intersection_ids = [
+        molecule_id for molecule_id in union_order if inclusion[molecule_id] == len(fit_keys)
+    ]
+    overlaps = {
+        fit_key: len(set(ids) & ensemble_set)
+        for fit_key, ids in nominations.items()
+    }
+    display_predictions = fit_predictions.loc[
+        fit_predictions.molecule_id.isin(union_order),
+        [
+            "molecule_id",
+            "fit_key",
+            "repeat",
+            "fold",
+            "pred_fit_LogD",
+            "pred_fit_LogS",
+            "pred_fit_KSOL_uM",
+            "fit_score",
+        ],
+    ].sort_values(["fit_key", "molecule_id"], kind="stable")
+    prediction_records = json.loads(
+        display_predictions.to_json(orient="records", double_precision=12)
+    )
+    result: dict[str, object] = {
+        "identity": identity,
+        "fit_keys": fit_keys,
+        "fit_metadata": [
+            {
+                "fit_key": row.fit_key,
+                "repeat": int(row.repeat),
+                "fold": int(row.fold),
+                "label": f"Repeat {int(row.repeat) + 1} · fold {int(row.fold) + 1}",
+            }
+            for row in fit_rows.itertuples(index=False)
+        ],
+        "capacity": count,
+        "nominations": nominations,
+        "union_order": union_order,
+        "inclusion_counts": inclusion,
+        "intersection_ids": intersection_ids,
+        "ensemble_ids": ensemble_ids,
+        "fit_to_ensemble_overlap": overlaps,
+        "predictions": prediction_records,
+    }
+    if len(union_order) != 256 or intersection_ids != ["E-0024329"]:
+        raise ValueError(
+            "Fit-nomination provenance regression: expected 256 union IDs and "
+            "unanimous E-0024329"
+        )
+    overlap_values = list(overlaps.values())
+    if (min(overlap_values), float(np.median(overlap_values)), max(overlap_values)) != (
+        21,
+        29.0,
+        36,
+    ):
+        raise ValueError("Fit-to-ensemble overlap regression mismatch")
+    CACHE.mkdir(parents=True, exist_ok=True)
+    temporary = cache_path.with_suffix(".json.tmp")
+    temporary.write_text(json.dumps(result, separators=(",", ":"), allow_nan=False) + "\n")
+    temporary.replace(cache_path)
+    return result
 
 
 def prepare(force: bool = False) -> tuple[pd.DataFrame, pd.DataFrame, dict[str, object]]:

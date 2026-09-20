@@ -2,7 +2,7 @@
 
 Updated 18 September 2026 after the user's approval of the revised ADMET story and H100 inference.
 
-**Read the newer [story and experience rework instructions](STORY_EXPERIENCE_REWORK.md) first.** The current implementation did not deliver the agreed scale/human-effort opening, early ChemLlama proposal, persistent visitor choice, separate Caco-2 discovery, or earned hopeful ending. That corrective brief takes precedence for narrative, ordering, and presentation; the scientific, H100-only, provenance, and publishing requirements below remain in force.
+**Read [CUSTOM_VISUAL_STORY_EXECUTION.md](CUSTOM_VISUAL_STORY_EXECUTION.md) first.** The 20 September brief governs the revised story, custom widgets, state flow, native/portable parity, and acceptance tests. It supersedes conflicting narrative/UI instructions here and in `STORY_EXPERIENCE_REWORK.md`; the scientific, H100-only, provenance, and publishing requirements below remain in force.
 
 Workspace: `/home/mbedrosian/code/marimo`, currently resolving to `/mnt/weka/mbedrosian/code/marimo`. Use `pwd -P` and paths accessible from compute nodes.
 

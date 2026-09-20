@@ -1,61 +1,61 @@
 # Implementation status
 
-This file records the current implementation state as of 18 September 2026.
+Current as of 20 September 2026.
 
-## Completed stages
+## Complete locally
 
-1. Created a project-local Python 3.13 virtual environment and resolved direct
-   notebook dependencies in `requirements-notebook.lock.txt`.
-2. Verified pinned input digests, built the typed fixed 2,160-row joined cohort,
-   and wrote regenerable cache artifacts under `data/notebook_cache/`.
-3. Reproduced the saved Morgan + LightGBM pilot exactly: top 10% is predicted
-   0.7942619913570331 / measured 0.7461249726859417; top 2% is
-   0.8248401217273029 / 0.7538348622359935.
-4. Reworked the notebook into a nine-action experience: sourced bounded-scale
-   opening, real nine-endpoint evidence accumulation, seed-linked cached
-   proposals, fixed-fifty commitment, separate evidence reveals, coherent
-   inspection, and a restored-proposal assay decision.
-5. Added explicit pinned-generation loading and hash/provenance validation in
-   `scripts/experience_data.py`; the notebook no longer chooses candidates by
-   newest file modification time.
-6. Created an isolated Python 3.12 inference environment; tokenizer/config
-   preflight and H100-only device guard are recorded under
-   `outputs/chemllama_preparation/`.
-7. Completed ChemLlama H100 smoke job `271947` and main pilot job `271948` on
-   `gpu03` (NVIDIA H100 80GB HBM3). The main pilot has 96 raw samples, 27
-   unique valid candidates, 69 invalid samples, and no duplicates. Raw output,
-   candidates, and manifest are in `outputs/chemllama/chemllama-271948/`.
+- Recomputed the 25 repeat/fold nomination sets by pairing LogD/LogS on actual
+  `(molecule_id, repeat, fold)` keys. The cached result has 256 union IDs, one
+  intersection ID (`E-0024329`), fit/ensemble overlap 21–36 (median 29), and
+  exact prediction records for all 256 × 25 display pairs.
+- Corrected `random_expected_passes` to the analytic
+  `50 × 905 / 2,160 = 20.949074…`; retained the seeded simulation mean as the
+  separately named `random_simulation_mean_passes`.
+- Built versioned evidence records with measured, predicted, computed, missing,
+  and bounded states; all inspectable union molecules, required training
+  neighbors, three seeds, and all 27 approved generated candidates have keyed
+  compressed RDKit SVG depictions.
+- Implemented `MoleculeEvidenceLens` and `ScaleJourney` as original anywidgets.
+  The main widget synchronizes seed/candidate, active fit, inspected ID,
+  ensemble commitment, disclosure stage, return state, and assay decision to
+  Python. Animation progress remains frontend-local.
+- Replaced both notebook paths with the same visual schema and renderer. The
+  portable bundle is 3.07 MiB and includes its exact JS/CSS assets, scientific
+  payload, depictions, source hashes, and derived-artifact hashes.
+- Preserved ChemLlama run `chemllama-271948`, its 96 raw records, 27 valid
+  candidates, 69 invalid records, zero duplicates, seed links, and prompting
+  limitation. No inference was rerun.
 
-## Validation completed
+## Validation evidence
 
-- `marimo check before_you_make_it.py` completed successfully.
-- `.venv/bin/python -m pytest` passed 12 scientific, generation, and
-  experience-contract tests.
-- `marimo export html ...` executed the reworked notebook and produced
-  `outputs/notebook_validation/story-rework-final.html`.
-- An isolated fresh-cache smoke test regenerated a separate
-  `outputs/notebook_validation/clean_cache_smoke/` cache and returned the
-  expected 4,934 training complete cases and 2,160 paired test records.
-- The local authenticated server was restarted successfully and is running in
-  terminal session `89482` at
-  `http://127.0.0.1:2718` (its one-time access-token URL is intentionally not
-  persisted in this file).
+- `pytest`: 17 scientific, generation, schema, tamper, and portable-parity tests
+  pass.
+- `marimo check`: both notebooks pass after formatting.
+- Native and portable HTML exports execute successfully.
+- Live Chromium paths pass for both native and local portable notebooks. Each
+  run verifies all nine required actions, rapid fit scrubbing, exact ensemble
+  commitment, withheld outcomes before reveal, same-ID measurement state,
+  41/50 enrichment, 38/50 and 33/41 Caco-2 coverage, retained candidate
+  identity, Python assay decision, replay, explicit restart, a 390-pixel layout
+  with zero widget overflow, reduced motion, and a fresh session.
+- State-aware screenshots and logs are under
+  `outputs/notebook_validation/custom-visual-story-{native,portable}/`.
 
-## Performance observations
+The final measured startup/interaction timings are recorded in each
+`interaction_log.json`; they are environment observations, not performance
+claims.
 
-Warm cached preparation is fast; initial native chemistry tooltip creation for
-the deterministic 800-molecule navigation sample took roughly 2–3 seconds in
-the export. Nearest-training fingerprints are cached in the joined cohort.
-Molecular grids cap rendering at 12 records per view.
+## Remaining external gate
 
-## Remaining verification limitation
+No authorized private molab route was available, and this task does not permit a
+public push. Consequently, the actual hosted molab URL has not executed the
+unpublished visual-v3 notebook/bundle. The local portable route is fully
+interactive and uses the intended browser-safe dependencies, but final
+submission still requires:
 
-The static export and executable notebook checks passed. Live authenticated
-browser interaction (including widget point-to-card propagation, reduced-motion,
-narrow-layout, and fresh-kernel restart) still needs a browser automation route;
-it is not claimed complete. Molab execution is also unverified because no
-authorized private molab route was available in this workspace.
+1. publish `before_you_make_it_wasm.py` and `data/molab_bundle.json` together;
+2. open the public molab URL from a fresh cache;
+3. run the same nine-action browser checklist there;
+4. record the hosted result without storing access tokens.
 
-The installed `marimo-chem-utils` version lacks a package REOS interface and a
-validated per-pair MCS depiction API; the notebook documents this instead of
-claiming alert or shared-substructure causes.
+This is the only known execution gap; it is not represented as completed.

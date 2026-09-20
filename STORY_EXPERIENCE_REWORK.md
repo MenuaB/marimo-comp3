@@ -2,6 +2,8 @@
 
 Corrective execution instructions, 18 September 2026.
 
+**Superseded for story and UI execution by [CUSTOM_VISUAL_STORY_EXECUTION.md](CUSTOM_VISUAL_STORY_EXECUTION.md), 20 September 2026.** Read that brief first. Retain the scientific and provenance safeguards below where compatible; the newer brief specifies the model-fit interaction, custom components, and deployment parity.
+
 Read this before continuing implementation. It refines and takes precedence over the narrative, ordering, and presentation instructions in `AGENT_EXECUTION_PLAN.md`. Its data-integrity, H100-only, provenance, testing, and publishing boundaries remain in force.
 
 ## 1. What you are fixing

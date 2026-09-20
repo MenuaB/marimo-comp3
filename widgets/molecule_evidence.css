@@ -1,0 +1,136 @@
+.mel {
+  --ink: #17212b;
+  --muted: #5d6a73;
+  --paper: #f7f4ee;
+  --panel: #fffdfa;
+  --line: #d9d3c8;
+  --aqua: #167d78;
+  --aqua-soft: #d9efeb;
+  --blue: #335c81;
+  --blue-soft: #dfeaf3;
+  --gold: #d79b2b;
+  --gold-soft: #f8ebc9;
+  --plum: #774a70;
+  --missing: #ebe7df;
+  color: var(--ink);
+  font-family: "PT Sans", sans-serif;
+  background: var(--paper);
+  border-radius: 24px;
+  padding: clamp(16px, 3vw, 30px);
+}
+.mel * { box-sizing: border-box; }
+.mel h2, .mel h3, .mel p { margin-top: 0; }
+.mel h2 { margin-bottom: 5px; font: 600 clamp(25px, 4vw, 43px)/1.08 "Lora", serif; letter-spacing: -.025em; }
+.mel h3 { margin-bottom: 8px; font: 600 21px/1.2 "Lora", serif; }
+.mel__eyebrow { margin: 0 0 6px; color: var(--aqua); font-size: 12px; font-weight: 750; letter-spacing: .13em; text-transform: uppercase; }
+.mel__muted { color: var(--muted); font-size: 13px; line-height: 1.5; }
+.mel__header { display: flex; justify-content: space-between; gap: 20px; align-items: end; flex-wrap: wrap; margin-bottom: 18px; }
+.mel__progress { display: flex; gap: 4px; align-items: center; }
+.mel__progress span { width: 17px; height: 5px; border-radius: 5px; background: var(--line); }
+.mel__progress span[data-done="true"] { background: var(--aqua); }
+.mel__panel { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: clamp(14px, 2.2vw, 23px); }
+.mel__selection { display: grid; grid-template-columns: .8fr 1.2fr; gap: 18px; margin-bottom: 14px; }
+.mel__cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 9px; }
+.mel button { font: inherit; color: inherit; }
+.mel__choice, .mel__action, .mel__assay { appearance: none; border: 1px solid var(--line); background: var(--panel); border-radius: 12px; min-height: 44px; text-align: left; }
+.mel__choice { padding: 8px; display: grid; grid-template-rows: 88px auto; gap: 6px; }
+.mel__choice:hover, .mel__assay:hover { border-color: var(--aqua); }
+.mel button:focus-visible, .mel input:focus-visible, .mel summary:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+.mel__choice[aria-pressed="true"] { border: 2px solid var(--aqua); background: var(--aqua-soft); }
+.mel__choice-image { background: white; border-radius: 8px; display: grid; place-items: center; overflow: hidden; }
+.mel__choice-image svg { width: 100%; height: 88px; }
+.mel__choice strong { display: block; font-size: 13px; }
+.mel__choice small { color: var(--muted); font-size: 11px; }
+.mel__extra { margin-top: 10px; }
+.mel__extra summary { color: var(--blue); font-weight: 700; }
+.mel__extra .mel__cards { margin-top: 10px; }
+.mel__retained { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 14px 0; padding: 10px 14px; border-radius: 14px; color: #fff; background: var(--ink); }
+.mel__retained strong { font-family: "PT Sans", sans-serif; }
+.mel__change { margin-bottom: 10px; }
+.mel__change > summary { color: var(--blue); font-weight: 700; }
+.mel__change .mel__selection { margin-top: 10px; }
+.mel__retained span:last-child { color: #cfe3e1; font-size: 12px; text-align: right; }
+.mel__instrument { display: grid; grid-template-columns: minmax(0, 1.48fr) minmax(275px, .72fr); gap: 14px; }
+.mel__viewport { min-width: 0; }
+.mel__toolbar { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; }
+.mel__fit { flex: 1; min-width: 250px; }
+.mel__fit-label { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 5px; }
+.mel__fit-label strong { font-size: 14px; }
+.mel__fit-label span { color: var(--muted); font-size: 12px; }
+.mel__fit input { width: 100%; accent-color: var(--aqua); }
+.mel__stats { display: flex; gap: 15px; flex-wrap: wrap; color: var(--muted); font-size: 12px; }
+.mel__stats strong { color: var(--ink); font-size: 17px; }
+.mel__matrix { display: grid; grid-template-columns: repeat(32, 1fr); gap: 3px; padding: 8px 0 12px; }
+.mel__cell { appearance: none; border: 0; min-width: 0; aspect-ratio: 1; padding: 0; border-radius: 3px; background: var(--missing); opacity: .72; }
+.mel__cell[data-nominated="true"] { background: var(--blue); opacity: .95; }
+.mel__cell[data-unanimous="true"] { box-shadow: inset 0 0 0 2px var(--gold), 0 0 0 1px var(--ink); }
+.mel__cell[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--panel), 0 0 0 2px var(--plum); }
+.mel__legend { display: flex; align-items: center; gap: 13px; flex-wrap: wrap; color: var(--muted); font-size: 11px; }
+.mel__swatch { display: inline-block; width: 11px; height: 11px; border-radius: 3px; vertical-align: -2px; margin-right: 4px; background: var(--missing); }
+.mel__swatch--selected { background: var(--blue); }
+.mel__swatch--unanimous { background: var(--blue); box-shadow: inset 0 0 0 2px var(--gold); }
+.mel__card { min-width: 0; }
+.mel__structure { min-height: 185px; display: grid; place-items: center; background: #fff; border-radius: 13px; overflow: hidden; }
+.mel__structure svg { width: 100%; height: auto; max-height: 210px; }
+.mel__identity { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin: 12px 0 7px; }
+.mel__identity strong { font: 700 16px/1 "PT Sans", sans-serif; }
+.mel__badge { display: inline-flex; align-items: center; min-height: 24px; padding: 3px 8px; border-radius: 999px; background: var(--blue-soft); color: var(--blue); font-size: 11px; font-weight: 750; }
+.mel__strip { display: grid; grid-template-columns: repeat(9, minmax(20px, 1fr)); gap: 4px; margin: 11px 0; }
+.mel__slot { aspect-ratio: 1; border: 1px solid var(--line); border-radius: 6px; display: grid; place-items: center; background: var(--missing); color: var(--muted); font-size: 8px; font-weight: 800; }
+.mel__slot[data-status="predicted"] { background: var(--blue-soft); border-color: var(--blue); color: var(--blue); }
+.mel__slot[data-status="measured"] { background: var(--aqua-soft); border-color: var(--aqua); color: var(--aqua); }
+.mel__slot[data-status="bounded"] { background: repeating-linear-gradient(135deg, var(--gold-soft), var(--gold-soft) 4px, var(--panel) 4px, var(--panel) 8px); border-color: var(--gold); color: var(--ink); }
+.mel__slot[data-status="hidden"] { background: var(--panel); border-style: dashed; }
+.mel__values { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; color: var(--muted); font-size: 12px; }
+.mel__values strong { display: block; color: var(--ink); font-size: 14px; }
+.mel__tray { display: grid; grid-template-columns: repeat(25, 1fr); gap: 3px; margin: 14px 0 5px; }
+.mel__tray button { appearance: none; border: 0; padding: 0; aspect-ratio: 1; border-radius: 2px; background: var(--blue); opacity: .9; min-width: 0; }
+.mel__tray button[data-pass="true"] { background: var(--aqua); }
+.mel__tray button[data-missing="true"] { background: repeating-linear-gradient(135deg, var(--missing), var(--missing) 3px, var(--panel) 3px, var(--panel) 6px); box-shadow: inset 0 0 0 1px var(--line); }
+.mel__tray button[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--plum); }
+.mel__action-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 14px; }
+.mel__action { padding: 10px 15px; font-weight: 750; text-align: center; }
+.mel__action[data-primary="true"] { border-color: var(--ink); color: #fff; background: var(--ink); }
+.mel__action:disabled { opacity: .45; }
+.mel__plot { width: 100%; min-height: 390px; background: var(--panel); border-radius: 12px; }
+.mel__plot .axis { stroke: var(--line); stroke-width: 1; }
+.mel__plot .tick { fill: var(--muted); font-size: 11px; }
+.mel__plot .axis-label { fill: var(--ink); font-size: 12px; font-weight: 700; }
+.mel__plot .target { fill: var(--aqua-soft); opacity: .75; }
+.mel__plot .point { fill: var(--panel); stroke: var(--blue); stroke-width: 2; }
+.mel__plot .point[data-measured="true"] { fill: var(--aqua); stroke: var(--ink); }
+.mel__plot .point[data-selected="true"] { stroke: var(--plum); stroke-width: 4; }
+.mel__plot .point[data-pass="false"] { fill: var(--gold-soft); stroke: var(--gold); }
+.mel__plot .connector { stroke: var(--plum); stroke-width: 2; stroke-dasharray: 4 4; }
+.mel__result { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.mel__metric { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; color: var(--muted); font-size: 12px; }
+.mel__metric strong { display: block; color: var(--ink); font: 600 24px/1.1 "Lora", serif; }
+.mel__random { width: 100%; height: 52px; }
+.mel__random .band { fill: var(--blue-soft); }
+.mel__random .expected { stroke: var(--blue); stroke-width: 2; }
+.mel__random .observed { stroke: var(--aqua); stroke-width: 4; }
+.mel__random text { fill: var(--muted); font-size: 10px; }
+.mel__return { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.mel__hope { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.mel__hope-card { background: var(--panel); border: 1px solid var(--line); border-radius: 13px; padding: 8px; }
+.mel__hope-card .mel__structure { min-height: 115px; }
+.mel__hope-card .mel__structure svg { max-height: 125px; }
+.mel__assays { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+.mel__assay { padding: 12px; }
+.mel__assay[aria-pressed="true"] { border: 2px solid var(--aqua); background: var(--aqua-soft); }
+.mel__assay strong { display: block; margin-bottom: 4px; }
+.mel__decision { margin-top: 12px; padding: 12px; border-left: 4px solid var(--aqua); background: var(--aqua-soft); }
+.mel__decision strong { font-family: "PT Sans", sans-serif; }
+@media (max-width: 900px) {
+  .mel__selection, .mel__instrument, .mel__return { grid-template-columns: 1fr; }
+  .mel__matrix { grid-template-columns: repeat(24, 1fr); }
+}
+@media (max-width: 560px) {
+  .mel__matrix { grid-template-columns: repeat(16, 1fr); gap: 4px; }
+  .mel__tray { grid-template-columns: repeat(10, 1fr); gap: 4px; }
+  .mel__result, .mel__assays { grid-template-columns: 1fr; }
+  .mel__selection { gap: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mel * { scroll-behavior: auto !important; }
+}

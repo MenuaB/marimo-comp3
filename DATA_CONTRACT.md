@@ -57,6 +57,24 @@ passes are a secondary diagnostic only: `1.4 <= obs_LogD <= 2.9` and
 Random-shortlist intervals use 2,000 equal-size draws without replacement,
 with seed `20260918`. They describe variation across random shortlists, not
 assay uncertainty or a confidence interval around model performance.
+`random_expected_passes` is analytic (`count × cohort passes / cohort size`);
+the finite simulation mean is retained only as
+`random_simulation_mean_passes`.
+
+## Visual payload
+
+`data/molab_bundle.json` uses schema `before-you-make-it-visual-v3`. It contains
+the deterministic 25 fit keys, each ordered top fifty, the 256-ID union order,
+inclusion counts, the one-ID intersection, the canonical ensemble fifty, and
+the 256 × 25 paired display predictions. Union order is prediction-only:
+inclusion frequency descending, ensemble score descending, then ID ascending.
+
+Evidence and depictions are keyed by canonical record ID. RDKit SVGs are stored
+as deterministic gzip+base64 strings and decompressed only for display. The
+payload records pinned source hashes plus canonical hashes of nomination and
+evidence-record sections; the native loader rejects schema, source, identity,
+derived-hash, or widget-asset mismatch. JSON null is the only absence value;
+non-finite constants are rejected.
 
 ## ChemLlama proposal contract
 
