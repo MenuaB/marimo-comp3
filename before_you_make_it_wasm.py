@@ -58,9 +58,32 @@ def _(mo):
 
     ## An enormous search. A few experiments. One next decision.
 
-    This browser-native edition keeps the same pinned evidence and nine actions
-    as the full notebook. It uses exact SMILES rather than native 2D depictions
-    so it can run entirely in your browser.
+    ### The idea, in plain language
+
+    There are far too many possible molecules to test one by one. First, pick
+    one molecule scientists have already measured. Then pick one **AI
+    suggestion** based on it. That suggestion is only an idea — it has not been
+    measured in a laboratory.
+
+    Next, practice a decision in a different collection where laboratory
+    answers are already known. A model picks 50 molecules it thinks look good;
+    you then reveal what the lab actually measured. Finally, return to *your*
+    AI suggestion and choose the most useful next experiment.
+
+    In short: **start with evidence → consider an AI idea → check how similar
+    decisions held up in the lab → decide what to test next.**
+
+    Follow the numbered controls. Three labels matter throughout:
+
+    - **Computed** means calculated from a structure.
+    - **Predicted** means a model's estimate.
+    - **Measured** means a laboratory result.
+
+    The laboratory results revealed in the middle belong to the separate
+    practice collection, never to your unmeasured AI suggestion.
+
+    This browser-native edition uses exact SMILES rather than native 2D
+    depictions so it can run entirely in your browser.
     """)
     return
 

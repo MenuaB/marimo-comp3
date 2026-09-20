@@ -92,7 +92,29 @@ def _(mo):
 
     ## An enormous search. A few experiments. One next decision.
 
-    When AI gives us a molecule that looks promising, what evidence could still change our decision to make or test it? This guided retrospective investigation keeps structures, computed descriptors, predictions, and experimental measurements distinct.
+    ### The idea, in plain language
+
+    There are far too many possible molecules to test one by one. We first pick
+    one molecule that scientists have already measured. Then we pick one **AI
+    suggestion** based on it. That suggestion is only an idea — nobody has
+    measured it yet.
+
+    Next, we practice making a decision in a separate collection where the
+    laboratory answers are already known. We let a model choose 50 molecules it
+    thinks look good, then reveal what the lab actually measured. Finally, we
+    return to *your* AI suggestion and choose the most useful next experiment.
+
+    In short: **start with evidence → consider an AI idea → check how similar
+    decisions held up in the lab → decide what to test next.**
+
+    The numbered controls are the path. Three labels matter throughout:
+
+    - **Computed** means calculated from a structure.
+    - **Predicted** means a model's estimate.
+    - **Measured** means a laboratory result.
+
+    The laboratory results revealed in the middle belong to the separate
+    practice collection, never to your unmeasured AI suggestion.
     """)
     return
 
