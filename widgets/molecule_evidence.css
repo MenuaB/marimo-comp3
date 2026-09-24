@@ -24,11 +24,15 @@
 .mel h3 { margin-bottom: 8px; font: 600 21px/1.2 "Lora", serif; }
 .mel__eyebrow { margin: 0 0 6px; color: var(--aqua); font-size: 12px; font-weight: 750; letter-spacing: .13em; text-transform: uppercase; }
 .mel__muted { color: var(--muted); font-size: 13px; line-height: 1.5; }
+.mel__lede { max-width: 850px; margin-bottom: 0; font-size: 15px; }
 .mel__header { display: flex; justify-content: space-between; gap: 20px; align-items: end; flex-wrap: wrap; margin-bottom: 18px; }
 .mel__progress { display: flex; gap: 4px; align-items: center; }
 .mel__progress span { width: 17px; height: 5px; border-radius: 5px; background: var(--line); }
 .mel__progress span[data-done="true"] { background: var(--aqua); }
 .mel__panel { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: clamp(14px, 2.2vw, 23px); }
+.mel__transition { margin: 0 0 14px; padding: clamp(14px, 2vw, 20px); border-left: 4px solid var(--aqua); border-radius: 0 14px 14px 0; background: var(--aqua-soft); }
+.mel__transition h3 { margin-bottom: 6px; }
+.mel__transition p:last-child { max-width: 920px; margin-bottom: 0; color: var(--muted); font-size: 14px; line-height: 1.55; }
 .mel__selection { display: grid; grid-template-columns: .8fr 1.2fr; gap: 18px; margin-bottom: 14px; }
 .mel__cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 9px; }
 .mel button { font: inherit; color: inherit; }
@@ -89,6 +93,8 @@
 .mel__tray button[data-missing="true"] { background: repeating-linear-gradient(135deg, var(--missing), var(--missing) 3px, var(--panel) 3px, var(--panel) 6px); box-shadow: inset 0 0 0 1px var(--line); }
 .mel__tray button[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--plum); }
 .mel__action-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 14px; }
+.mel__question { display: grid; gap: 3px; margin-top: 16px; padding: 12px 14px; border-left: 4px solid var(--gold); background: var(--gold-soft); color: var(--muted); font-size: 13px; line-height: 1.45; }
+.mel__question strong { color: var(--ink); font-size: 14px; }
 .mel__action { padding: 10px 15px; font-weight: 750; text-align: center; }
 .mel__action[data-primary="true"] { border-color: var(--ink); color: #fff; background: var(--ink); }
 .mel__action:disabled { opacity: .45; }

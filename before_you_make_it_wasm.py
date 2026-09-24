@@ -22,7 +22,7 @@ def _():
 
     local_bundle = Path(__file__).resolve().parent / "data" / "molab_bundle.json"
     bundle_revision = "99903922b673e9607b69de6dd5e45a9168f539cb"
-    local_bundle_sha256 = "8eb110a5644b383c7ad4a4c755f27d83b74de89b1172acc3c7476508fb681055"
+    local_bundle_sha256 = "46ddd1866adf41c453ebdd167b2a17357633203467552bacc822808008aaadf2"
     published_bundle_sha256 = "8eb110a5644b383c7ad4a4c755f27d83b74de89b1172acc3c7476508fb681055"
     if local_bundle.is_file():
         bundle_bytes = local_bundle.read_bytes()
@@ -186,16 +186,28 @@ def _():
 @app.cell
 def _(mo):
     mo.md("""
+    <section data-testid="story-introduction">
+
     # Before You Make It
 
-    ## Fifty experiments. Twenty-five maps. One next decision.
+    ## Imagine you can test only fifty molecules.
 
-    **How do we choose a few molecules to investigate when our maps of what
-    looks promising disagree—and when measurements can change even their
-    shared recommendation?**
+    There are far more possible molecules than a laboratory can make and
+    measure. Each experiment adds evidence—how much a molecule dissolves,
+    where it prefers to distribute, or how readily it crosses a cell-like
+    barrier—but that work takes material, assays, and attention.
 
-    This portable edition uses the same verified payload, RDKit SVG
-    depictions, custom renderer, and state contract as the native notebook.
+    Models help decide where to spend that attention. Here, **twenty-five
+    saved fits of the same modeling method** each rank a held-out collection.
+    Think of each fit as a different map of the same territory: the training
+    folds change, so the recommended fifty can change too.
+
+    You will follow one illustrative budget of **fifty experiments**: compare
+    the model fits, commit an exact shortlist, reveal its real measurements,
+    ask what another ADMET assay adds, and finally decide what evidence an
+    unmeasured proposal would need next.
+
+    </section>
     """)
     return
 

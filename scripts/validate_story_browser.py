@@ -23,7 +23,7 @@ def capture(locator, output: Path, name: str) -> None:
 
 def wait_lens(page: Page):
     lens = page.locator('[data-testid="molecule-evidence-lens"]')
-    expect(lens.get_by_role("heading", name="Which fifty survive a changing map?")).to_be_visible(
+    expect(lens.get_by_role("heading", name="Pick a starting point—and know what the choice changes.")).to_be_visible(
         timeout=60_000
     )
     return lens
@@ -39,6 +39,7 @@ def open_story(browser: Browser, url: str, *, reduced_motion: bool = False) -> P
     expect(
         page.get_by_role("heading", name="Before You Make It", exact=True)
     ).to_be_visible(timeout=60_000)
+    expect(page.get_by_text("Imagine you can test only fifty molecules.", exact=False)).to_be_visible()
     wait_lens(page)
     return page
 
@@ -48,9 +49,11 @@ def exercise_main_path(page: Page, output: Path) -> tuple[list[dict[str, object]
     events: list[dict[str, object]] = []
     scale = page.locator('[data-testid="scale-journey"]')
     lens = wait_lens(page)
+    page.screenshot(path=output / "00-complete-opening.png", full_page=True)
 
-    scale.get_by_role("button", name="Skip motion").click()
-    expect(scale.get_by_text("Context changes here", exact=False)).to_be_visible()
+    scale.get_by_role("button", name="Show the summary").click()
+    expect(scale.get_by_text("From possibilities to evidence", exact=False)).to_be_visible()
+    expect(scale.get_by_text("5,260 years", exact=False)).to_be_visible()
     expect(scale.get_by_text("7,608", exact=False)).to_be_visible()
     capture(scale, output, "01-scale-and-evidence")
     events.append({"action": 1, "state": "scale skipped to real recorded evidence"})
@@ -61,6 +64,7 @@ def exercise_main_path(page: Page, output: Path) -> tuple[list[dict[str, object]
 
     lens.locator('[data-candidate-id="C-0035"]').click()
     expect(lens.locator('[data-testid="retained-candidate"]')).to_contain_text("C-0035")
+    expect(lens.get_by_text("A separate retrospective test", exact=False)).to_be_visible()
     events.append({"action": 3, "candidate_id": "C-0035"})
 
     slider = lens.locator('[data-testid="fit-scrubber"]')
@@ -86,20 +90,20 @@ def exercise_main_path(page: Page, output: Path) -> tuple[list[dict[str, object]
         }
     )
 
-    lens.get_by_role("button", name="Action 5 · commit this fit’s fifty").click()
+    lens.get_by_role("button", name="Choose this model’s fifty").click()
     expect(lens.locator('[data-testid="property-plane"]')).to_be_visible()
     expect(lens).to_contain_text("Outcomes remain hidden")
     assert "41/50" not in lens.inner_text()
     assert "measured LogD 0.70" not in lens.inner_text()
     events.append({"action": 5, "selection_kind": "active_fit", "fit_key": "repeat-5-fold-5", "committed_count": 50})
 
-    lens.get_by_role("button", name="Action 6 · reveal measurements").click()
+    lens.get_by_role("button", name="Compare with measurements").click()
     expect(lens.get_by_text("36/50", exact=True)).to_be_visible()
     expect(lens.locator('[data-testid="molecule-card"]')).to_contain_text(
         "measured LogD"
     )
     expect(lens.locator('[data-testid="molecule-card"]')).to_contain_text("0.70")
-    lens.get_by_role("button", name="Replay movement").click()
+    lens.get_by_role("button", name="Replay predicted-to-measured movement").click()
     capture(lens, output, "03-measured-reveal")
     events.append(
         {
@@ -110,7 +114,7 @@ def exercise_main_path(page: Page, output: Path) -> tuple[list[dict[str, object]
         }
     )
 
-    lens.get_by_role("button", name="Action 7 · expand the ADMET question").click()
+    lens.get_by_role("button", name="Ask about permeability and efflux").click()
     expect(lens.locator('[data-testid="caco-plane"]')).to_be_visible()
     active_ids = PAYLOAD["nominations"]["nominations"]["repeat-5-fold-5"]
     active_paired = sum(
@@ -129,7 +133,7 @@ def exercise_main_path(page: Page, output: Path) -> tuple[list[dict[str, object]
     capture(lens, output, "04-caco-evidence")
     events.append({"action": 7, "caco_paired": active_paired, "paired_among_passes": active_paired_passes})
 
-    lens.get_by_role("button", name="Action 8 · return to my proposal").click()
+    lens.get_by_role("button", name="Apply the lesson to my proposal").click()
     expect(lens.locator('[data-testid="molecule-card"]')).to_contain_text("C-0035")
     expect(lens.locator('[data-testid="molecule-card"]')).to_contain_text(
         "experimental LogD"
@@ -160,9 +164,9 @@ def exercise_main_path(page: Page, output: Path) -> tuple[list[dict[str, object]
     # and has its own measured total rather than inheriting the active fit.
     slider = lens.locator('[data-testid="fit-scrubber"]')
     slider.evaluate("element => element.dispatchEvent(new Event('change', {bubbles:true}))")
-    lens.get_by_role("button", name="Use the ensemble fifty").click()
+    lens.get_by_role("button", name="Choose the averaged-model fifty").click()
     expect(lens).to_contain_text("Ensemble shortlist")
-    lens.get_by_role("button", name="Action 6 · reveal measurements").click()
+    lens.get_by_role("button", name="Compare with measurements").click()
     expect(lens.get_by_text("41/50", exact=True)).to_be_visible()
     events.append({"optional": "ensemble route", "selection_kind": "ensemble", "selected_passes": 41})
 
@@ -180,14 +184,29 @@ def exercise_reduced_motion(browser: Browser, url: str, output: Path) -> dict[st
     page = open_story(browser, url, reduced_motion=True)
     scale = page.locator('[data-testid="scale-journey"]')
     started = time.perf_counter()
-    scale.get_by_role("button", name="Pull back").click()
-    expect(scale.get_by_text("Context changes here", exact=False)).to_be_visible(
+    scale.get_by_role("button", name="Show the scale").click()
+    expect(scale.get_by_text("From possibilities to evidence", exact=False)).to_be_visible(
         timeout=2_000
     )
     capture(scale, output, "07-reduced-motion")
     elapsed = time.perf_counter() - started
     page.context.close()
     return {"optional": "reduced-motion", "completed_seconds": elapsed}
+
+
+def exercise_full_scale(browser: Browser, url: str, output: Path) -> dict[str, object]:
+    page = open_story(browser, url)
+    scale = page.locator('[data-testid="scale-journey"]')
+    started = time.perf_counter()
+    scale.get_by_role("button", name="Show the scale").click()
+    expect(scale.get_by_text("From possibilities to evidence", exact=False)).to_be_visible(
+        timeout=12_000
+    )
+    expect(scale.get_by_text("5,260 years", exact=False)).to_be_visible()
+    capture(scale, output, "08-full-scale-route")
+    elapsed = time.perf_counter() - started
+    page.context.close()
+    return {"optional": "full-scale-route", "completed_seconds": elapsed}
 
 
 def main() -> None:
@@ -211,6 +230,7 @@ def main() -> None:
         events, interaction_seconds = exercise_main_path(page, args.output)
         page.context.close()
         events.append(exercise_reduced_motion(browser, args.url, args.output))
+        events.append(exercise_full_scale(browser, args.url, args.output))
         browser.close()
 
     log = {

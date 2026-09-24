@@ -1,6 +1,6 @@
 # Implementation status
 
-Current as of 23 September 2026.
+Current as of 24 September 2026.
 
 ## Complete locally
 
@@ -31,24 +31,51 @@ Current as of 23 September 2026.
 - Replaced ensemble-only commitment with active-fit or ensemble commitment.
   `selection_kind`, `committed_fit_key`, and 50 ordered `committed_ids` flow
   through Python-derived measurement and Caco-2 summaries.
+- Rebuilt the introduction around the concrete premise “Imagine you can test
+  only fifty molecules.” It now explains experimental evidence and the 25
+  model fits before presenting controls. The animated, summary, and
+  reduced-motion scale routes all retain the five landmarks, bounded GDB-17
+  scope, hypothetical one-per-second comparison, and the transition from one
+  measured molecule to collection-wide coverage.
+- Replaced visitor-facing component/procedure language with question-led scene
+  transitions. Seed selection is explicitly described as filtering cached
+  proposal examples; proposal identity is explicitly separated from the
+  retrospective shortlist. LogD, kinetic solubility, Papp, and efflux receive
+  plain-language introductions before their abbreviated views.
 
 ## Validation evidence
 
-- `pytest`: scientific, generation, schema, chemistry-audit, commitment, and
-  portable-analysis tests cover the 23 featured candidates, all 25 saved fits,
-  and ensemble parity.
+- `pytest`: 22 scientific, generation, schema, chemistry-audit, commitment,
+  portable-analysis, and narrative-asset tests pass. They cover the 23 featured
+  candidates, all 25 saved fits, ensemble parity, and the newcomer-first copy
+  embedded in the portable bundle.
 - `marimo check`: both notebooks pass after formatting.
 - Native and portable HTML exports execute successfully.
-- The browser harness now exercises an active-fit commitment and a separate
-  ensemble commitment, their different summaries, and committed-ID Caco-2
-  continuity. Re-run it in an environment with Playwright Chromium shared
-  libraries available; this environment lacks `libnspr4.so`.
+- Native and portable HTML exports complete. The portable live server starts
+  and serves successfully.
+- The browser harness now captures the full introductory page and exercises
+  the complete animated scale, immediate summary, reduced motion, active-fit
+  and ensemble routes, their different summaries, and committed-ID Caco-2
+  continuity. Its current run remains blocked before browser launch because
+  this host lacks Chromium shared libraries beginning with `libnspr4.so`; no
+  new screenshots are claimed from this host.
 - State-aware screenshots and logs are under
   `outputs/notebook_validation/custom-visual-story-{native,portable}/`.
 
 The final measured startup/interaction timings are recorded in each
 `interaction_log.json`; they are environment observations, not performance
 claims.
+
+## Newcomer reading assessment
+
+The revised default copy answers four questions before or beside the relevant
+action: the problem is allocating an illustrative fifty experimental slots;
+experiments add behavioral evidence that structures and predictions cannot;
+each choice states what it changes and what it does not change; and each result
+ends with the question that motivates the next scene. This is an editorial
+assessment of the implemented copy, not a substitute for observing a new
+reader. A short external newcomer walkthrough remains desirable before final
+submission.
 
 ## Publication status
 

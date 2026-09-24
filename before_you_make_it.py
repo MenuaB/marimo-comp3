@@ -38,16 +38,28 @@ def _():
 @app.cell
 def _(mo):
     mo.md("""
+    <section data-testid="story-introduction">
+
     # Before You Make It
 
-    ## Fifty experiments. Twenty-five maps. One next decision.
+    ## Imagine you can test only fifty molecules.
 
-    **How do we choose a few molecules to investigate when our maps of what
-    looks promising disagree—and when measurements can change even their
-    shared recommendation?**
+    There are far more possible molecules than a laboratory can make and
+    measure. Each experiment adds evidence—how much a molecule dissolves,
+    where it prefers to distribute, or how readily it crosses a cell-like
+    barrier—but that work takes material, assays, and attention.
 
-    Pull back from molecular possibility, keep one real AI proposal, and
-    carry the same retrospective molecules from nomination to measurement.
+    Models help decide where to spend that attention. Here, **twenty-five
+    saved fits of the same modeling method** each rank a held-out collection.
+    Think of each fit as a different map of the same territory: the training
+    folds change, so the recommended fifty can change too.
+
+    You will follow one illustrative budget of **fifty experiments**: compare
+    the model fits, commit an exact shortlist, reveal its real measurements,
+    ask what another ADMET assay adds, and finally decide what evidence an
+    unmeasured proposal would need next.
+
+    </section>
     """)
     return
 

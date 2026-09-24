@@ -73,6 +73,38 @@ export default {
       const ids = committedIds(state);
       return ids.includes(state.inspected_molecule_id) ? state.inspected_molecule_id : ids[0];
     };
+    const storyHeader = (state) => {
+      if (!state.candidate_id) return {
+        eyebrow: "Choose an example to carry",
+        title: "Pick a starting point—and know what the choice changes.",
+        lede: "A measured seed filters the cached generation examples. The proposal you retain will return at the end; neither choice changes the separate retrospective shortlist analysis.",
+      };
+      if (state.returned_to_proposal) return {
+        eyebrow: "Apply what the measurements taught us",
+        title: "What would we measure on the proposal next?",
+        lede: "The generated structure is still only a proposal. The retrospective results help frame a better question; they do not supply this molecule with experimental evidence.",
+      };
+      if (state.caco_revealed) return {
+        eyebrow: "Widen the evidence",
+        title: "What important question is still unanswered?",
+        lede: "The same committed fifty now gains a separate view of permeability and efflux. Missing evidence stays missing rather than becoming failure.",
+      };
+      if (state.measurements_revealed) return {
+        eyebrow: "Prediction meets experiment",
+        title: "What changed when we inspected the measurements?",
+        lede: "The same fifty molecules move from predicted to measured properties. The shortlist can remain useful even when individual recommendations surprise us.",
+      };
+      if (state.selection_kind) return {
+        eyebrow: "Keep the shortlist fixed",
+        title: "What did the chosen model expect?",
+        lede: "These exact fifty IDs are now committed. Their experimental outcomes remain hidden until you choose to compare prediction with measurement.",
+      };
+      return {
+        eyebrow: "Spend the illustrative fifty-experiment budget",
+        title: "How sensitive is the shortlist to the fitted model?",
+        lede: "Each saved fit ranks the same held-out molecules after a different training fold. Move between fits to see whether the same candidates keep receiving attention.",
+      };
+    };
 
     function choiceCard(id, meta, selected, kind) {
       return `<button type="button" class="mel__choice" data-${kind}-id="${esc(id)}" aria-pressed="${selected}">
@@ -102,9 +134,10 @@ export default {
       )).join("");
       const extras = available.filter((row) => !firstIds.has(row.candidate_id));
       const extraMarkup = extras.length ? `<details class="mel__extra"><summary>Inspect ${extras.length} more recorded proposals</summary><div class="mel__cards">${extras.map((candidate) => choiceCard(candidate.candidate_id, `seed similarity ${number(candidate.similarity_to_seed)}`, state.candidate_id === candidate.candidate_id, "candidate")).join("")}</div></details>` : "";
-      return `<div class="mel__selection">
-        <div class="mel__panel"><p class="mel__eyebrow">Action 2 · select one measured seed</p><div class="mel__cards">${seeds}</div></div>
-        <div class="mel__panel"><p class="mel__eyebrow">Action 3 · retain one cached ChemLlama proposal</p>${cards ? `<div class="mel__cards">${cards}</div>${extraMarkup}` : `<p class="mel__muted">Select a seed to see its compatible recorded proposals.</p>`}</div>
+      return `<div class="mel__transition"><p class="mel__eyebrow">From measured evidence to an unmeasured idea</p><h3>Choose one example to remember while we test the selection process.</h3><p>First choose a real measured training molecule. That choice only changes which cached ChemLlama outputs appear beside it. Then retain one generated proposal to revisit after the retrospective investigation; it does not influence which fifty held-out molecules the models select.</p></div>
+      <div class="mel__selection">
+        <div class="mel__panel"><p class="mel__eyebrow">Choose a measured reference</p><p class="mel__muted">The cards show measured LogD and kinetic solubility. Your choice filters the recorded generation examples below; it does not change the model comparison.</p><div class="mel__cards">${seeds}</div></div>
+        <div class="mel__panel"><p class="mel__eyebrow">Retain one unmeasured proposal</p><p class="mel__muted">These are chemically screened, cached generation outputs. Choose a structure to carry to the ending. Its experiments remain unknown.</p>${cards ? `<div class="mel__cards">${cards}</div>${extraMarkup}` : `<p class="mel__muted">Choose a measured reference to see its associated proposals.</p>`}</div>
       </div>`;
     }
 
@@ -116,7 +149,7 @@ export default {
 
     function selectionShell(state) {
       if (!state.candidate_id) return selectionMarkup(state);
-      return `<details class="mel__change"><summary>Change seed or retained proposal · current ${esc(state.candidate_id)}</summary>${selectionMarkup(state)}</details>`;
+      return `<details class="mel__change"><summary>Change the example carried through the story · current ${esc(state.candidate_id)}</summary>${selectionMarkup(state)}</details>`;
     }
 
     function endpointDisplay(record, stage, endpoint, index) {
@@ -183,14 +216,15 @@ export default {
       return `<div class="mel__instrument">
         <div class="mel__panel mel__viewport">
           <div class="mel__toolbar">
-            <div class="mel__fit"><div class="mel__fit-label"><strong>Action 4 · scrub the saved fits</strong><span data-fit-label>${esc(nominations.fit_metadata[fitIndex].label)}</span></div><input data-testid="fit-scrubber" type="range" min="0" max="24" step="1" value="${fitIndex}" aria-label="Saved model fit"></div>
+            <div class="mel__fit"><div class="mel__fit-label"><strong>Compare the twenty-five saved model fits</strong><span data-fit-label>${esc(nominations.fit_metadata[fitIndex].label)}</span></div><input data-testid="fit-scrubber" type="range" min="0" max="24" step="1" value="${fitIndex}" aria-label="Compare saved model fits"></div>
             <div class="mel__stats"><span><strong>50</strong> nominated</span><span><strong data-overlap>${overlap}</strong> overlap ensemble</span><span><strong>${50 - overlap}</strong> active-only</span><span><strong>${50 - overlap}</strong> ensemble-only</span></div>
           </div>
           <div class="mel__matrix" data-matrix aria-label="Fixed-order nomination layout of 256 molecules">${cells}</div>
           <div class="mel__legend"><span><i class="mel__swatch mel__swatch--selected"></i>active fit nomination</span><span><i class="mel__swatch"></i>not nominated</span><span><i class="mel__swatch mel__swatch--unanimous"></i>unanimous nomination</span><span>Layout order: inclusion frequency descending, ensemble score descending, ID ascending; not chemical geometry.</span></div>
           ${trayMarkup(nominations.nominations[fitKey], state, "prediction")}
           <p class="mel__muted">Across all 25 saved repeat/fold fits: <strong>256 distinct nominations</strong>, <strong>1 unanimous record</strong>. These related fits share methods and overlapping training data; disagreement is selection sensitivity, not calibrated uncertainty.</p>
-          <div class="mel__action-row"><button type="button" class="mel__action" data-primary="true" data-action="commit-fit" ${state.fit_explored ? "" : "disabled"}>Action 5 · commit this fit’s fifty</button><button type="button" class="mel__action" data-action="commit-ensemble" ${state.fit_explored ? "" : "disabled"}>Use the ensemble fifty</button><button type="button" class="mel__action" data-action="focus-unanimous">Return to the 25/25 example</button></div>
+          <div class="mel__question"><strong>Which recommendation should receive the fifty experimental slots?</strong><span>Choose the active fit exactly as shown, or use the average prediction across fits. The chosen IDs remain fixed for the measurement reveal.</span></div>
+          <div class="mel__action-row"><button type="button" class="mel__action" data-primary="true" data-action="commit-fit" ${state.fit_explored ? "" : "disabled"}>Choose this model’s fifty</button><button type="button" class="mel__action" data-action="commit-ensemble" ${state.fit_explored ? "" : "disabled"}>Choose the averaged-model fifty</button><button type="button" class="mel__action" data-action="focus-unanimous">Inspect the one 25/25 nominee</button></div>
           <p class="mel__muted">The active inspected molecule appears in <strong>${data.nominations.inclusion_counts[state.inspected_molecule_id] || 0}/25</strong> saved fits. Commitment preserves this exact ordered list even if you scrub later.</p>
         </div>
         <div data-card-host>${evidenceCard(state.inspected_molecule_id, state, fitKey)}</div>
@@ -268,12 +302,13 @@ export default {
       const ref = data.retrospective.random_reference;
       return `<div class="mel__instrument">
         <div class="mel__panel mel__viewport">
-          <div class="mel__toolbar"><div><p class="mel__eyebrow">${measured ? "Action 6 · measurements revealed" : "Action 5 · shortlist committed"}</p><h3>${measured ? "The same fifty, now measured" : "The committed fifty, before measurement"}</h3><span class="mel__badge">${esc(sourceLabel(state))}</span></div>${measured ? `<button type="button" class="mel__action" data-action="replay">Replay movement</button>` : ""}</div>
+          <div class="mel__toolbar"><div><p class="mel__eyebrow">${measured ? "Observed evidence" : "Predictions only"}</p><h3>${measured ? "The same fifty, now measured" : "The committed fifty, before measurement"}</h3><span class="mel__badge">${esc(sourceLabel(state))}</span></div>${measured ? `<button type="button" class="mel__action" data-action="replay">Replay predicted-to-measured movement</button>` : ""}</div>
           <div data-plot-host>${propertyPlot(state)}</div>
           ${trayMarkup(ids, {...state, inspected_molecule_id:selected}, state.evidence_stage)}
           ${state.selection_notice ? `<p class="mel__muted">${esc(state.selection_notice)}</p>` : ""}
           ${measured ? `<div class="mel__result"><div class="mel__metric"><strong>${summary.passes}/50</strong>committed shortlist measured target passes</div><div class="mel__metric"><strong>${data.retrospective.ensemble_target_passes}/50</strong>ensemble measured target passes</div><div class="mel__metric"><strong>${data.retrospective.fit_target_passes_summary.minimum}–${data.retrospective.fit_target_passes_summary.maximum}</strong>related saved-fit range</div><div class="mel__metric"><strong>${number(ref.random_expected_passes, 2)}</strong>exact passes expected for random fifty</div><div class="mel__metric"><strong>${number(selectedRecord.measurement_summary.LogD, 2)}</strong>measured LogD for inspected ${esc(selected)}</div></div>${randomBand(summary)}<p class="mel__muted">Shaded band: 95% of 2,000 seeded random-shortlist pass counts (${ref.random_low_95.toFixed(0)}–${ref.random_high_95.toFixed(0)}). Blue line: analytic expectation. Teal line: this committed shortlist. Related repeat/fold fits are selection sensitivity views, not independent trials.</p>` : `<p class="mel__muted">${esc(sourceLabel(state))}: 50 ordered IDs. Target: LogD ${data.targets.logd_low}–${data.targets.logd_high}, KSOL ≥${data.targets.ksol_min_um} µM. Outcomes remain hidden.</p>`}
-          <div class="mel__action-row">${measured ? `<button type="button" class="mel__action" data-primary="true" data-action="caco">Action 7 · expand the ADMET question</button>` : `<button type="button" class="mel__action" data-primary="true" data-action="measure">Action 6 · reveal measurements</button>`}</div>
+          <div class="mel__question"><strong>${measured ? "Two properties are not the whole profile. What important question remains?" : "Predictions placed these molecules in the target region. Did the measurements agree?"}</strong><span>${measured ? "Next, inspect permeability and efflux for the unchanged fifty." : "Reveal the recorded LogD and solubility without changing the committed IDs."}</span></div>
+          <div class="mel__action-row">${measured ? `<button type="button" class="mel__action" data-primary="true" data-action="caco">Ask about permeability and efflux</button>` : `<button type="button" class="mel__action" data-primary="true" data-action="measure">Compare with measurements</button>`}</div>
         </div>
         <div data-card-host>${evidenceCard(selected, state)}</div>
       </div>`;
@@ -311,12 +346,13 @@ export default {
       const contrast = (misses.length ? misses : [...paired].sort())[0] || null;
       return `<div class="mel__instrument">
         <div class="mel__panel mel__viewport">
-          <div class="mel__toolbar"><div><p class="mel__eyebrow">Action 7 · a different property plane</p><h3>The first success remains visible; Caco-2 asks another question.</h3></div><div class="mel__badge">${esc(sourceLabel(state))} · ${initialPasses}/50 initial passes</div></div>
+          <div class="mel__toolbar"><div><p class="mel__eyebrow">A separate assay question</p><h3>The first result remains visible; Caco-2 adds permeability and efflux.</h3><p class="mel__muted">Papp asks how readily a molecule crosses a cell-like layer. The efflux ratio asks whether transport proteins appear to pump more material back in the opposite direction.</p></div><div class="mel__badge">${esc(sourceLabel(state))} · ${initialPasses}/50 initial passes</div></div>
           ${cacoPlot(state)}
           ${trayMarkup(ids, state, "caco")}
           <div class="mel__result"><div class="mel__metric"><strong>${paired.length}/50</strong>paired numeric Caco-2 evidence</div><div class="mel__metric"><strong>${pairedPasses}/${initialPasses}</strong>initial passes with paired Caco-2</div><div class="mel__metric"><strong>${50 - paired.length}</strong>missing or bounded Caco-2 evidence</div></div>
           <p class="mel__muted">Hatched tray slots are missing or bounded for at least one Caco-2 measure; they are selectable and are not counted as failures.${contrast ? ` Optional deterministic contrast: <button type="button" class="mel__action" data-inspect-example="${esc(contrast)}">paired target-miss contrast ${esc(contrast)}</button>.` : ""}</p>
-          <div class="mel__action-row"><button type="button" class="mel__action" data-primary="true" data-action="return">Action 8 · return to my proposal</button><button type="button" class="mel__action" data-action="restart">Restart retrospective</button></div>
+          <div class="mel__question"><strong>What should this teach us about an unmeasured proposal?</strong><span>Return to the structure you retained. Its assay slots will still be empty; the retrospective evidence can guide the next question, not answer it.</span></div>
+          <div class="mel__action-row"><button type="button" class="mel__action" data-primary="true" data-action="return">Apply the lesson to my proposal</button><button type="button" class="mel__action" data-action="restart">Choose another shortlist</button></div>
         </div>
         <div data-card-host>${evidenceCard(committedInspection(state), state)}</div>
       </div>`;
@@ -341,7 +377,7 @@ export default {
       }).join("");
       const assays = Object.keys(assayReasons).map((assay) => `<button type="button" class="mel__assay" data-assay="${esc(assay)}" aria-pressed="${state.next_assay === assay}"><strong>${esc(assay)}</strong><span class="mel__muted">${esc(assayReasons[assay])}</span></button>`).join("");
       return `<div class="mel__return">
-        <div>${evidenceCard(candidate.molecule_id, state)}<div class="mel__panel" style="margin-top:12px"><p class="mel__eyebrow">Action 9 · choose the next assay</p><div class="mel__assays">${assays}</div>${state.next_assay ? `<div class="mel__decision" aria-live="polite"><strong>${esc(candidate.molecule_id)}</strong> · next question: ${esc(state.next_assay)}. ${esc(assayReasons[state.next_assay])} No assay is commissioned and no result is fabricated.</div>` : ""}<div class="mel__action-row"><button type="button" class="mel__action" data-action="restart">Restart retrospective</button></div></div></div>
+        <div>${evidenceCard(candidate.molecule_id, state)}<div class="mel__panel" style="margin-top:12px"><p class="mel__eyebrow">Choose the next unanswered question</p><p class="mel__muted">Each option names evidence that could change how this exact proposal is judged. Choosing does not commission an assay or fabricate a result.</p><div class="mel__assays">${assays}</div>${state.next_assay ? `<div class="mel__decision" aria-live="polite"><strong>${esc(candidate.molecule_id)}</strong> · next question: ${esc(state.next_assay)}. ${esc(assayReasons[state.next_assay])} No assay is commissioned and no result is fabricated.</div>` : ""}<div class="mel__action-row"><button type="button" class="mel__action" data-action="restart">Choose another shortlist</button></div></div></div>
         <div class="mel__panel"><p class="mel__eyebrow">Measured reasons for hope</p><h3>Useful enrichment survived the surprise.</h3><p class="mel__muted">These are lexicographically first eligible initial passes from the committed ${esc(sourceLabel(state)).toLowerCase()}. Their measurements never transfer to ${esc(candidate.molecule_id)}.</p><div class="mel__hope">${hope}</div></div>
       </div>`;
     }
@@ -494,7 +530,7 @@ export default {
       previousStage = state.evidence_stage;
       let body = "";
       if (!state.candidate_id) {
-        body = selectionMarkup(state) + retainedMarkup(state) + `<div class="mel__panel"><p class="mel__muted">Choose a proposal card to enter the separate retrospective investigation.</p></div>`;
+        body = selectionMarkup(state) + retainedMarkup(state) + `<div class="mel__transition"><p class="mel__eyebrow">What happens after this choice?</p><p>Selecting a proposal gives the story one unmeasured structure to return to. The next scene deliberately sets it aside and examines a separate held-out collection where both predictions and measurements already exist.</p></div>`;
       } else if (state.returned_to_proposal) {
         body = retainedMarkup(state) + returnMarkup(state);
       } else if (state.caco_revealed) {
@@ -502,9 +538,10 @@ export default {
       } else if (state.selection_kind) {
         body = selectionShell(state) + retainedMarkup(state) + outcomeMarkup(state);
       } else {
-        body = selectionShell(state) + retainedMarkup(state) + nominationMarkup(state);
+        body = selectionShell(state) + retainedMarkup(state) + `<div class="mel__transition"><p class="mel__eyebrow">A separate retrospective test</p><h3>Now set the proposal aside and examine decisions we can check.</h3><p>The generated proposal does not enter this analysis. We use 2,160 held-out ExpansionRx molecules with saved model predictions and recorded LogD and kinetic-solubility measurements. Each model fit gets the same illustrative budget: recommend fifty.</p></div>` + nominationMarkup(state);
       }
-      root.innerHTML = `<div class="mel__header"><div><p class="mel__eyebrow">Before You Make It · fifty experiments · twenty-five maps</p><h2>Which fifty survive a changing map?</h2><p class="mel__muted">MoleculeEvidenceLens keeps one identity anchored while the source of evidence changes.</p></div><div class="mel__progress" aria-label="${stageIndex(state)} of 9 required actions">${progress(state)}</div></div>${body}`;
+      const header = storyHeader(state);
+      root.innerHTML = `<div class="mel__header"><div><p class="mel__eyebrow">${esc(header.eyebrow)}</p><h2>${esc(header.title)}</h2><p class="mel__muted mel__lede">${esc(header.lede)}</p></div><div class="mel__progress" aria-label="Story progress: ${stageIndex(state)} of 9 milestones">${progress(state)}</div></div>${body}`;
       bindSelection(state);
       bindInspection();
       if (state.candidate_id && !state.returned_to_proposal && !state.caco_revealed && !state.selection_kind) bindNomination(state);

@@ -1,11 +1,11 @@
 # Before You Make It
 
-**Fifty experiments. Twenty-five maps. One next decision.**
+**Imagine you can test only fifty molecules.**
 
-A nine-action marimo story about choosing a small retrospective molecular
-shortlist when saved model fits disagree, seeing what measurement changes, and
-returning to one unmeasured cached ChemLlama proposal with a better next
-question.
+A nine-action marimo story that first explains why experiments are scarce,
+then lets a visitor choose a retrospective molecular shortlist when saved
+model fits disagree, see what measurement changes, and return to one unmeasured
+cached ChemLlama proposal with a better next question.
 
 ## Entry points
 
@@ -62,9 +62,11 @@ identity coherent across:
 - a separate Caco-2 view for that unchanged fifty;
 - the retained generated candidate and candidate-specific next-assay record.
 
-`ScaleJourney` uses counted level-of-detail groups, a skippable/reduced-motion
-route, a real training molecule's nine-slot evidence strip, and collection-wide
-endpoint coverage. Both components synchronize discrete state to Python via
+`ScaleJourney` introduces every control with its purpose, uses counted
+level-of-detail groups, keeps the full scale explanation on summary and
+reduced-motion routes, translates a real training molecule's assay evidence
+before showing the nine-slot strip, and then expands to collection-wide
+coverage. Both components synchronize discrete state to Python via
 `mo.ui.anywidget`; animation progress stays browser-local.
 
 ## Scientific facts exposed

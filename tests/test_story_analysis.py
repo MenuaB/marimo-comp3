@@ -68,7 +68,10 @@ def test_featured_structures_are_single_sanitized_and_descriptor_consistent(payl
         assert descriptors["tpsa_A2"] == pytest.approx(Descriptors.TPSA(molecule), abs=1e-4)
         assert descriptors["hbd"] == Lipinski.NumHDonors(molecule)
         assert descriptors["hba"] == Lipinski.NumHAcceptors(molecule)
-    assert "NaN" not in json.dumps(payload, allow_nan=False)
+    # Strict serialization rejects actual non-finite numeric values. Do not
+    # search the serialized text for the letters "NaN": compressed/base64
+    # widget assets can contain that character sequence by chance.
+    json.dumps(payload, allow_nan=False)
 
 
 def test_all_saved_fit_and_ensemble_commitments_flow_through_measurement_and_caco(payload):

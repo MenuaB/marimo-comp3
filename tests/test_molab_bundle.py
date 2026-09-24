@@ -52,6 +52,23 @@ def test_portable_bundle_same_committed_ids_across_disclosures() -> None:
     ) == 38
 
 
+def test_portable_bundle_contains_newcomer_first_narrative() -> None:
+    payload = json.loads((ROOT / "data" / "molab_bundle.json").read_text())
+    scale_js = payload["widget_assets"]["scale_js"]
+    lens_js = payload["widget_assets"]["lens_js"]
+
+    assert "What are you looking at?" in scale_js
+    assert "hypothetical inspection time" in scale_js
+    assert "A structure tells us what a molecule is" in scale_js
+    assert "Show the summary" in scale_js
+    assert "The generated proposal does not enter this analysis" in lens_js
+    assert "How sensitive is the shortlist to the fitted model?" in lens_js
+    assert "Compare with measurements" in lens_js
+    assert "Ask about permeability and efflux" in lens_js
+    assert "MoleculeEvidenceLens keeps" not in lens_js
+    assert "scrub the saved fits" not in lens_js
+
+
 def test_native_loader_accepts_bundle_and_rejects_schema_or_hash_tampering(tmp_path) -> None:
     payload = load_visual_payload()
     assert payload["nominations"]["intersection_ids"] == ["E-0024329"]

@@ -2,27 +2,32 @@
 
 The required path is nine actions:
 
-1. Pull back, or use the immediate motion-free route. Counted grouping reaches
-   GDB-17's bounded 166-billion enumeration, then explicitly changes context to
-   a real ExpansionRx training record and the 7,608-record evidence collection.
-2. Select one of three real measured seed cards.
-3. Select a compatible cached ChemLlama proposal card. Its ID remains in the
-   retained tray and every experimental slot stays unknown.
-4. Scrub the 25 saved fits once. Fifty illuminated cells change in a fixed
+1. Read the concrete premise: imagine only fifty molecules can be tested. Show
+   the counted scale, or use the immediate summary. Both routes explain
+   GDB-17's bounded 166-billion scope, the hypothetical 5,260-year one-per-second
+   comparison, one molecule's assay evidence, and the 7,608-record collection.
+2. Choose one of three real measured references. The notebook says explicitly
+   that this choice only filters the associated cached generation examples.
+3. Retain a chemically screened, cached ChemLlama proposal. Its ID remains in
+   the tray and every experimental slot stays unknown; it does not influence
+   the separate retrospective shortlist analysis.
+4. Compare the 25 saved fits. Fifty illuminated cells change in a fixed
    256-ID layout; `E-0024329` starts as the sole 25/25 nominee, while a visitor
    can inspect another molecule without it being reset by the scrubber.
-5. Choose either **Commit this fit’s fifty** or **Use the ensemble fifty**. The
+5. Choose either **Choose this model’s fifty** or **Choose the averaged-model
+   fifty**. The
    widget and Python panel record the exact ordered IDs and label the source.
-6. Reveal measurements. The same committed IDs move; the Python panel derives
+6. Compare with measurements. The same committed IDs move; the Python panel derives
    that shortlist's pass count, compares it with the 41/50 ensemble result and
    31–42 related-fit range, and shows the 20.949 exact random expectation.
-7. Expand the question to Caco-2. The original committed IDs remain in view;
+7. Ask about permeability and efflux. Plain-language copy introduces Caco-2,
+   Papp, and efflux before the plot. The committed IDs remain in view;
    paired numeric, paired-initial-pass, and missing/bounded counts are computed
    for that shortlist (the ensemble is 38/50 and 33/41).
-8. Return to the exact retained proposal beside `E-0021738` and `E-0024328`,
-   which are transparently labeled property-profile examples rather than
-   clinical successes.
-9. Choose one assay card. The Python state records candidate ID, question, and
+8. Apply the lesson to the exact retained proposal beside deterministic
+   measured examples, which remain separate evidence rather than claims about
+   the proposal.
+9. Choose one next-assay question. The Python state records candidate ID, question, and
    how the answer could change a decision; it does not commission or invent an
    assay.
 
@@ -32,6 +37,8 @@ screenshots plus machine-readable logs under:
 - `outputs/notebook_validation/custom-visual-story-native/`
 - `outputs/notebook_validation/custom-visual-story-portable/`
 
-It also checks rapid fit input, replay, explicit restart, 390-pixel layout,
-reduced motion, and a fresh browser/kernel session. The default path requires
-exactly nine actions; optional inspection does not block it.
+It also captures the complete introductory reading context and transitions,
+checks the full scale sequence, summary route, rapid fit input, replay, explicit
+restart, 390-pixel layout, reduced motion, and a fresh browser/kernel session.
+The default path requires exactly nine actions; optional inspection does not
+block it.
