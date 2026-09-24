@@ -1,6 +1,6 @@
 # Implementation status
 
-Current as of 20 September 2026.
+Current as of 23 September 2026.
 
 ## Complete locally
 
@@ -22,22 +22,27 @@ Current as of 20 September 2026.
 - Replaced both notebook paths with the same visual schema and renderer. The
   portable bundle is 3.07 MiB and includes its exact JS/CSS assets, scientific
   payload, depictions, source hashes, and derived-artifact hashes.
-- Preserved ChemLlama run `chemllama-271948`, its 96 raw records, 27 valid
-  candidates, 69 invalid records, zero duplicates, seed links, and prompting
-  limitation. No inference was rerun.
+- Preserved ChemLlama run `chemllama-271948`, its 96 raw records, 27
+  RDKit-parseable candidates, 69 invalid records, zero duplicates, seed links,
+  and prompting limitation. A deterministic chemistry audit identifies 23
+  sanitized single-component featured candidates and four unresolved
+  multi-component samples. `C-0033` remains in the audit with raw `.Cl` but is
+  not displayed as a proposal. No inference was rerun.
+- Replaced ensemble-only commitment with active-fit or ensemble commitment.
+  `selection_kind`, `committed_fit_key`, and 50 ordered `committed_ids` flow
+  through Python-derived measurement and Caco-2 summaries.
 
 ## Validation evidence
 
-- `pytest`: 17 scientific, generation, schema, tamper, and portable-parity tests
-  pass.
+- `pytest`: scientific, generation, schema, chemistry-audit, commitment, and
+  portable-analysis tests cover the 23 featured candidates, all 25 saved fits,
+  and ensemble parity.
 - `marimo check`: both notebooks pass after formatting.
 - Native and portable HTML exports execute successfully.
-- Live Chromium paths pass for both native and local portable notebooks. Each
-  run verifies all nine required actions, rapid fit scrubbing, exact ensemble
-  commitment, withheld outcomes before reveal, same-ID measurement state,
-  41/50 enrichment, 38/50 and 33/41 Caco-2 coverage, retained candidate
-  identity, Python assay decision, replay, explicit restart, a 390-pixel layout
-  with zero widget overflow, reduced motion, and a fresh session.
+- The browser harness now exercises an active-fit commitment and a separate
+  ensemble commitment, their different summaries, and committed-ID Caco-2
+  continuity. Re-run it in an environment with Playwright Chromium shared
+  libraries available; this environment lacks `libnspr4.so`.
 - State-aware screenshots and logs are under
   `outputs/notebook_validation/custom-visual-story-{native,portable}/`.
 
@@ -47,7 +52,8 @@ claims.
 
 ## Publication status
 
-The visual-v3 notebook and bundle are published on `main`. The portable entry
-point uses the checked-in bundle when present and an immutable, SHA-256-verified
-GitHub bundle fallback when the host loads only the notebook file. Local native
-and portable browser paths have passed the complete nine-action checklist.
+The checked-in visual-v3 notebook and bundle contain the phase 1–3 changes.
+The portable entry point verifies that local artifact and retains the existing
+immutable, SHA-256-verified GitHub fallback for the previously published
+bundle. Publishing the rebuilt bundle is outside this task's authorization, so
+the remote-only route must be updated and revalidated after publication.

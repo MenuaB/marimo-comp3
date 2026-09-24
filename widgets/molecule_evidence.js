@@ -50,7 +50,7 @@ export default {
       if (state.returned_to_proposal) return 8;
       if (state.caco_revealed) return 7;
       if (state.measurements_revealed) return 6;
-      if (state.selection_kind === "ensemble") return 5;
+      if (state.selection_kind) return 5;
       if (state.fit_explored) return 4;
       if (state.candidate_id) return 3;
       return state.seed_id ? 2 : 1;
@@ -59,6 +59,20 @@ export default {
     const depiction = (id) => data.depictions[id] || "";
     const candidateList = (seedId) => data.candidates.filter((candidate) => candidate.seed_id === seedId);
     const candidateRecord = (state) => state.candidate_id ? records[state.candidate_id] : null;
+    const committedIds = (state) => {
+      if (state.selection_kind === "active_fit") return nominations.nominations[state.committed_fit_key] || [];
+      if (state.selection_kind === "ensemble") return nominations.ensemble_ids;
+      return [];
+    };
+    const sourceLabel = (state) => {
+      if (state.selection_kind === "ensemble") return "Ensemble shortlist";
+      const meta = nominations.fit_metadata.find((item) => item.fit_key === state.committed_fit_key);
+      return meta ? `${meta.label} shortlist` : "Saved-fit shortlist";
+    };
+    const committedInspection = (state) => {
+      const ids = committedIds(state);
+      return ids.includes(state.inspected_molecule_id) ? state.inspected_molecule_id : ids[0];
+    };
 
     function choiceCard(id, meta, selected, kind) {
       return `<button type="button" class="mel__choice" data-${kind}-id="${esc(id)}" aria-pressed="${selected}">
@@ -132,7 +146,7 @@ export default {
       } else if (stage === "nomination" && fitPrediction) {
         values = `<span><strong>${number(fitPrediction.pred_fit_LogD, 3)}</strong>fit-predicted LogD</span><span><strong>${number(fitPrediction.pred_fit_KSOL_uM, 1)} µM</strong>fit-predicted KSOL</span><span><strong>${data.nominations.inclusion_counts[id] || 0}/25</strong>fit nominations</span><span><strong>${esc(record.nearest_training_id)}</strong>training context</span>`;
       } else if (stage === "prediction" && ensemble) {
-        values = `<span><strong>${number(ensemble.LogD, 3)}</strong>ensemble-predicted LogD</span><span><strong>${number(ensemble.KSOL_uM, 1)} µM</strong>ensemble-predicted KSOL</span><span><strong>${data.nominations.inclusion_counts[id] || 0}/25</strong>fit nominations</span><span><strong>${number(ensemble.score, 3)}</strong>illustrative score</span>`;
+        values = `<span><strong>${number(ensemble.LogD, 3)}</strong>mean-predicted LogD</span><span><strong>${number(ensemble.KSOL_uM, 1)} µM</strong>mean-predicted KSOL</span><span><strong>${data.nominations.inclusion_counts[id] || 0}/25</strong>fit nominations</span><span><strong>${number(ensemble.score, 3)}</strong>illustrative score</span>`;
       } else if (measurement) {
         values = `<span><strong>${number(measurement.LogD, 2)}</strong>measured LogD</span><span><strong>${number(measurement.KSOL_uM, 1)} µM</strong>measured KSOL</span><span><strong>${measurement.target_pass ? "Meets" : "Misses"}</strong>two-property target</span><span><strong>${data.nominations.inclusion_counts[id] || 0}/25</strong>fit nominations</span>`;
         if (stage === "caco") {
@@ -170,20 +184,20 @@ export default {
         <div class="mel__panel mel__viewport">
           <div class="mel__toolbar">
             <div class="mel__fit"><div class="mel__fit-label"><strong>Action 4 · scrub the saved fits</strong><span data-fit-label>${esc(nominations.fit_metadata[fitIndex].label)}</span></div><input data-testid="fit-scrubber" type="range" min="0" max="24" step="1" value="${fitIndex}" aria-label="Saved model fit"></div>
-            <div class="mel__stats"><span><strong>50</strong> nominated</span><span><strong data-overlap>${overlap}</strong> overlap ensemble</span></div>
+            <div class="mel__stats"><span><strong>50</strong> nominated</span><span><strong data-overlap>${overlap}</strong> overlap ensemble</span><span><strong>${50 - overlap}</strong> active-only</span><span><strong>${50 - overlap}</strong> ensemble-only</span></div>
           </div>
           <div class="mel__matrix" data-matrix aria-label="Fixed-order nomination layout of 256 molecules">${cells}</div>
           <div class="mel__legend"><span><i class="mel__swatch mel__swatch--selected"></i>active fit nomination</span><span><i class="mel__swatch"></i>not nominated</span><span><i class="mel__swatch mel__swatch--unanimous"></i>unanimous nomination</span><span>Layout order: inclusion frequency descending, ensemble score descending, ID ascending; not chemical geometry.</span></div>
           ${trayMarkup(nominations.nominations[fitKey], state, "prediction")}
           <p class="mel__muted">Across all 25 saved repeat/fold fits: <strong>256 distinct nominations</strong>, <strong>1 unanimous record</strong>. These related fits share methods and overlapping training data; disagreement is selection sensitivity, not calibrated uncertainty.</p>
-          <div class="mel__action-row"><button type="button" class="mel__action" data-primary="true" data-action="commit" ${state.fit_explored ? "" : "disabled"}>Action 5 · commit the ensemble fifty</button><span class="mel__muted">The ensemble is explicit; it never becomes the last fit you touched.</span></div>
+          <div class="mel__action-row"><button type="button" class="mel__action" data-primary="true" data-action="commit-fit" ${state.fit_explored ? "" : "disabled"}>Action 5 · commit this fit’s fifty</button><button type="button" class="mel__action" data-action="commit-ensemble" ${state.fit_explored ? "" : "disabled"}>Use the ensemble fifty</button><button type="button" class="mel__action" data-action="focus-unanimous">Return to the 25/25 example</button></div>
+          <p class="mel__muted">The active inspected molecule appears in <strong>${data.nominations.inclusion_counts[state.inspected_molecule_id] || 0}/25</strong> saved fits. Commitment preserves this exact ordered list even if you scrub later.</p>
         </div>
         <div data-card-host>${evidenceCard(state.inspected_molecule_id, state, fitKey)}</div>
       </div>`;
     }
 
-    function plotGeometry() {
-      const ids = nominations.ensemble_ids;
+    function plotGeometry(ids) {
       const xs = [];
       const ys = [];
       for (const id of ids) {
@@ -202,13 +216,14 @@ export default {
     }
 
     function propertyPlot(state) {
-      const geometry = plotGeometry();
+      const ids = committedIds(state);
+      const geometry = plotGeometry(ids);
       const measured = state.evidence_stage !== "prediction";
       const {box, x, y} = geometry;
       const xTicks = Array.from({length: 6}, (_, index) => geometry.xMin + index * (geometry.xMax - geometry.xMin) / 5);
       const yTicks = [100, 200, 500, 1000].filter((tick) => Math.log10(tick) >= geometry.lyMin && Math.log10(tick) <= geometry.lyMax);
       const target = data.targets;
-      const selected = state.inspected_molecule_id;
+      const selected = committedInspection(state);
       const selectedRecord = records[selected];
       const connector = measured && selectedRecord ? `<line class="connector" x1="${x(selectedRecord.ensemble_prediction.LogD)}" y1="${y(selectedRecord.ensemble_prediction.KSOL_uM)}" x2="${x(selectedRecord.measurement_summary.LogD)}" y2="${y(selectedRecord.measurement_summary.KSOL_uM)}"></line>` : "";
       const points = geometry.ids.map((id) => {
@@ -221,42 +236,51 @@ export default {
         <rect class="target" x="${x(target.logd_low)}" y="${box.top}" width="${x(target.logd_high) - x(target.logd_low)}" height="${y(target.ksol_min_um) - box.top}"></rect>
         ${xTicks.map((tick) => `<line class="axis" x1="${x(tick)}" y1="${box.top}" x2="${x(tick)}" y2="${box.h - box.bottom}"></line><text class="tick" x="${x(tick)}" y="${box.h - box.bottom + 18}" text-anchor="middle">${number(tick, 1)}</text>`).join("")}
         ${yTicks.map((tick) => `<line class="axis" x1="${box.left}" y1="${y(tick)}" x2="${box.w - box.right}" y2="${y(tick)}"></line><text class="tick" x="${box.left - 9}" y="${y(tick) + 4}" text-anchor="end">${tick}</text>`).join("")}
-        <text class="axis-label" x="${(box.left + box.w - box.right) / 2}" y="${box.h - 13}" text-anchor="middle">${measured ? "Measured" : "Ensemble-predicted"} LogD</text>
-        <text class="axis-label" transform="translate(16 ${(box.top + box.h - box.bottom) / 2}) rotate(-90)" text-anchor="middle">${measured ? "Measured" : "Ensemble-predicted"} KSOL (µM, log scale)</text>
+        <text class="axis-label" x="${(box.left + box.w - box.right) / 2}" y="${box.h - 13}" text-anchor="middle">${measured ? "Measured" : "Predicted"} LogD</text>
+        <text class="axis-label" transform="translate(16 ${(box.top + box.h - box.bottom) / 2}) rotate(-90)" text-anchor="middle">${measured ? "Measured" : "Predicted"} KSOL (µM, log scale)</text>
         ${connector}${points}
       </svg>`;
     }
 
-    function randomBand() {
+    function shortlistSummary(ids) {
+      const passes = ids.filter((id) => records[id].measurement_summary.target_pass).length;
+      return {passes, count: ids.length};
+    }
+
+    function randomBand(summary) {
       const ref = data.retrospective.random_reference;
       const x = (value) => 28 + value / 50 * 664;
-      return `<svg class="mel__random" viewBox="0 0 720 52" role="img" aria-label="Random fifty 95 percent simulated range ${ref.random_low_95} to ${ref.random_high_95}; exact expected ${number(ref.random_expected_passes, 2)}; ensemble observed ${ref.selected_passes}">
+      return `<svg class="mel__random" viewBox="0 0 720 52" role="img" aria-label="Random fifty 95 percent simulated range ${ref.random_low_95} to ${ref.random_high_95}; exact expected ${number(ref.random_expected_passes, 2)}; committed observed ${summary.passes}">
         <line x1="28" y1="25" x2="692" y2="25" stroke="var(--line)"></line>
         <rect class="band" x="${x(ref.random_low_95)}" y="15" width="${x(ref.random_high_95) - x(ref.random_low_95)}" height="20" rx="5"></rect>
         <line class="expected" x1="${x(ref.random_expected_passes)}" y1="10" x2="${x(ref.random_expected_passes)}" y2="40"></line>
-        <line class="observed" x1="${x(ref.selected_passes)}" y1="7" x2="${x(ref.selected_passes)}" y2="43"></line>
+        <line class="observed" x1="${x(summary.passes)}" y1="7" x2="${x(summary.passes)}" y2="43"></line>
         <text x="28" y="50">0 passes</text><text x="692" y="50" text-anchor="end">50 passes</text>
       </svg>`;
     }
 
     function outcomeMarkup(state) {
       const measured = state.evidence_stage !== "prediction";
-      const unanimous = records[data.retrospective.unanimous_id];
+      const ids = committedIds(state);
+      const selected = committedInspection(state);
+      const selectedRecord = records[selected];
+      const summary = shortlistSummary(ids);
       const ref = data.retrospective.random_reference;
       return `<div class="mel__instrument">
         <div class="mel__panel mel__viewport">
-          <div class="mel__toolbar"><div><p class="mel__eyebrow">${measured ? "Action 6 · measurements revealed" : "Action 5 · ensemble committed"}</p><h3>${measured ? "The same fifty, now measured" : "The ensemble fifty, before measurement"}</h3></div>${measured ? `<button type="button" class="mel__action" data-action="replay">Replay movement</button>` : ""}</div>
+          <div class="mel__toolbar"><div><p class="mel__eyebrow">${measured ? "Action 6 · measurements revealed" : "Action 5 · shortlist committed"}</p><h3>${measured ? "The same fifty, now measured" : "The committed fifty, before measurement"}</h3><span class="mel__badge">${esc(sourceLabel(state))}</span></div>${measured ? `<button type="button" class="mel__action" data-action="replay">Replay movement</button>` : ""}</div>
           <div data-plot-host>${propertyPlot(state)}</div>
-          ${trayMarkup(nominations.ensemble_ids, state, state.evidence_stage)}
-          ${measured ? `<div class="mel__result"><div class="mel__metric"><strong>41/50</strong>meet the measured two-property target</div><div class="mel__metric"><strong>${number(ref.random_expected_passes, 2)}</strong>exact passes expected for random fifty</div><div class="mel__metric"><strong>${number(unanimous.measurement_summary.LogD, 2)}</strong>measured LogD for the 25/25 nominee</div></div>${randomBand()}<p class="mel__muted">Shaded band: 95% of 2,000 seeded random-shortlist pass counts (${ref.random_low_95.toFixed(0)}–${ref.random_high_95.toFixed(0)}). Blue line: analytic expectation. Teal line: ensemble result. This is random-selection variation, not assay uncertainty.</p>` : `<p class="mel__muted">Target: LogD ${data.targets.logd_low}–${data.targets.logd_high}, KSOL ≥${data.targets.ksol_min_um} µM. Fifty is an illustrative attention limit. Outcomes remain hidden.</p>`}
+          ${trayMarkup(ids, {...state, inspected_molecule_id:selected}, state.evidence_stage)}
+          ${state.selection_notice ? `<p class="mel__muted">${esc(state.selection_notice)}</p>` : ""}
+          ${measured ? `<div class="mel__result"><div class="mel__metric"><strong>${summary.passes}/50</strong>committed shortlist measured target passes</div><div class="mel__metric"><strong>${data.retrospective.ensemble_target_passes}/50</strong>ensemble measured target passes</div><div class="mel__metric"><strong>${data.retrospective.fit_target_passes_summary.minimum}–${data.retrospective.fit_target_passes_summary.maximum}</strong>related saved-fit range</div><div class="mel__metric"><strong>${number(ref.random_expected_passes, 2)}</strong>exact passes expected for random fifty</div><div class="mel__metric"><strong>${number(selectedRecord.measurement_summary.LogD, 2)}</strong>measured LogD for inspected ${esc(selected)}</div></div>${randomBand(summary)}<p class="mel__muted">Shaded band: 95% of 2,000 seeded random-shortlist pass counts (${ref.random_low_95.toFixed(0)}–${ref.random_high_95.toFixed(0)}). Blue line: analytic expectation. Teal line: this committed shortlist. Related repeat/fold fits are selection sensitivity views, not independent trials.</p>` : `<p class="mel__muted">${esc(sourceLabel(state))}: 50 ordered IDs. Target: LogD ${data.targets.logd_low}–${data.targets.logd_high}, KSOL ≥${data.targets.ksol_min_um} µM. Outcomes remain hidden.</p>`}
           <div class="mel__action-row">${measured ? `<button type="button" class="mel__action" data-primary="true" data-action="caco">Action 7 · expand the ADMET question</button>` : `<button type="button" class="mel__action" data-primary="true" data-action="measure">Action 6 · reveal measurements</button>`}</div>
         </div>
-        <div data-card-host>${evidenceCard(state.inspected_molecule_id, state)}</div>
+        <div data-card-host>${evidenceCard(selected, state)}</div>
       </div>`;
     }
 
     function cacoPlot(state) {
-      const ids = nominations.ensemble_ids;
+      const ids = committedIds(state);
       const paired = ids.filter((id) => records[id].endpoints[4].value != null && records[id].endpoints[5].value != null);
       const papp = paired.map((id) => records[id].endpoints[4].value);
       const efflux = paired.map((id) => records[id].endpoints[5].value);
@@ -271,7 +295,7 @@ export default {
         const pass = record.measurement_summary.target_pass;
         return `<circle class="point" data-caco-id="${esc(id)}" data-measured="true" data-pass="${pass}" data-selected="${id === state.inspected_molecule_id}" cx="${x(record.endpoints[4].value)}" cy="${y(record.endpoints[5].value)}" r="${id === state.inspected_molecule_id ? 7 : 5}" role="button" aria-label="Inspect ${esc(id)}: Papp ${number(record.endpoints[4].value, 2)}, efflux ${number(record.endpoints[5].value, 2)}"></circle>`;
       }).join("");
-      return `<svg class="mel__plot" data-testid="caco-plane" viewBox="0 0 ${box.w} ${box.h}" role="img" aria-label="Caco-2 Papp and efflux measurements for 38 of the unchanged fifty">
+      return `<svg class="mel__plot" data-testid="caco-plane" viewBox="0 0 ${box.w} ${box.h}" role="img" aria-label="Caco-2 Papp and efflux measurements for ${paired.length} of the unchanged committed fifty">
         ${ticks.map((fraction) => `<line class="axis" x1="${x(fraction*xMax)}" y1="${box.top}" x2="${x(fraction*xMax)}" y2="${box.h-box.bottom}"></line><text class="tick" x="${x(fraction*xMax)}" y="${box.h-box.bottom+18}" text-anchor="middle">${number(fraction*xMax,0)}</text><line class="axis" x1="${box.left}" y1="${y(fraction*yMax)}" x2="${box.w-box.right}" y2="${y(fraction*yMax)}"></line><text class="tick" x="${box.left-9}" y="${y(fraction*yMax)+4}" text-anchor="end">${number(fraction*yMax,1)}</text>`).join("")}
         <text class="axis-label" x="${(box.left+box.w-box.right)/2}" y="${box.h-13}" text-anchor="middle">Measured Caco-2 Papp A&gt;B (10^-6 cm/s)</text>
         <text class="axis-label" transform="translate(16 ${(box.top+box.h-box.bottom)/2}) rotate(-90)" text-anchor="middle">Measured Caco-2 efflux ratio</text>${points}
@@ -279,16 +303,22 @@ export default {
     }
 
     function cacoMarkup(state) {
+      const ids = committedIds(state);
+      const paired = ids.filter((id) => records[id].endpoints[4].status === "measured" && records[id].endpoints[5].status === "measured" && records[id].endpoints[4].value != null && records[id].endpoints[5].value != null);
+      const initialPasses = shortlistSummary(ids).passes;
+      const pairedPasses = paired.filter((id) => records[id].measurement_summary.target_pass).length;
+      const misses = paired.filter((id) => !records[id].measurement_summary.target_pass).sort();
+      const contrast = (misses.length ? misses : [...paired].sort())[0] || null;
       return `<div class="mel__instrument">
         <div class="mel__panel mel__viewport">
-          <div class="mel__toolbar"><div><p class="mel__eyebrow">Action 7 · a different property plane</p><h3>The first success remains visible; Caco-2 asks another question.</h3></div><div class="mel__badge">41/50 still meet LogD/KSOL target</div></div>
+          <div class="mel__toolbar"><div><p class="mel__eyebrow">Action 7 · a different property plane</p><h3>The first success remains visible; Caco-2 asks another question.</h3></div><div class="mel__badge">${esc(sourceLabel(state))} · ${initialPasses}/50 initial passes</div></div>
           ${cacoPlot(state)}
-          ${trayMarkup(nominations.ensemble_ids, state, "caco")}
-          <div class="mel__result"><div class="mel__metric"><strong>38/50</strong>paired numeric Caco-2 evidence</div><div class="mel__metric"><strong>33/41</strong>initial passes with paired Caco-2</div><div class="mel__metric"><strong>12</strong>remain without a paired numeric view</div></div>
-          <p class="mel__muted">Hatched tray slots are missing or bounded for at least one Caco-2 measure; they are selectable and are not counted as failures. Optional contrasts: <button type="button" class="mel__action" data-inspect-example="E-0023839">broader-profile contrast E-0023839</button>.</p>
+          ${trayMarkup(ids, state, "caco")}
+          <div class="mel__result"><div class="mel__metric"><strong>${paired.length}/50</strong>paired numeric Caco-2 evidence</div><div class="mel__metric"><strong>${pairedPasses}/${initialPasses}</strong>initial passes with paired Caco-2</div><div class="mel__metric"><strong>${50 - paired.length}</strong>missing or bounded Caco-2 evidence</div></div>
+          <p class="mel__muted">Hatched tray slots are missing or bounded for at least one Caco-2 measure; they are selectable and are not counted as failures.${contrast ? ` Optional deterministic contrast: <button type="button" class="mel__action" data-inspect-example="${esc(contrast)}">paired target-miss contrast ${esc(contrast)}</button>.` : ""}</p>
           <div class="mel__action-row"><button type="button" class="mel__action" data-primary="true" data-action="return">Action 8 · return to my proposal</button><button type="button" class="mel__action" data-action="restart">Restart retrospective</button></div>
         </div>
-        <div data-card-host>${evidenceCard(state.inspected_molecule_id, state)}</div>
+        <div data-card-host>${evidenceCard(committedInspection(state), state)}</div>
       </div>`;
     }
 
@@ -301,14 +331,18 @@ export default {
     function returnMarkup(state) {
       const candidate = records[state.candidate_id];
       if (!candidate) return `<div class="mel__panel"><p>The retained candidate is missing. Choose a proposal again.</p></div>`;
-      const hope = data.retrospective.encouraging_ids.map((id) => {
+      const hopeIds = committedIds(state).filter((id) => records[id].measurement_summary.target_pass).filter((id) => {
+        const endpoints = records[id].endpoints;
+        return endpoints[4].status === "measured" && endpoints[5].status === "measured";
+      }).sort().slice(0, 2);
+      const hope = hopeIds.map((id) => {
         const record = records[id];
         return `<div class="mel__hope-card"><div class="mel__structure">${depiction(id)}</div><strong>${esc(id)}</strong><p class="mel__muted">Measured LogD ${number(record.measurement_summary.LogD,2)} · KSOL ${number(record.measurement_summary.KSOL_uM,1)} µM. Example rule: measured target pass with broader-profile evidence; not a clinical claim.</p></div>`;
       }).join("");
       const assays = Object.keys(assayReasons).map((assay) => `<button type="button" class="mel__assay" data-assay="${esc(assay)}" aria-pressed="${state.next_assay === assay}"><strong>${esc(assay)}</strong><span class="mel__muted">${esc(assayReasons[assay])}</span></button>`).join("");
       return `<div class="mel__return">
         <div>${evidenceCard(candidate.molecule_id, state)}<div class="mel__panel" style="margin-top:12px"><p class="mel__eyebrow">Action 9 · choose the next assay</p><div class="mel__assays">${assays}</div>${state.next_assay ? `<div class="mel__decision" aria-live="polite"><strong>${esc(candidate.molecule_id)}</strong> · next question: ${esc(state.next_assay)}. ${esc(assayReasons[state.next_assay])} No assay is commissioned and no result is fabricated.</div>` : ""}<div class="mel__action-row"><button type="button" class="mel__action" data-action="restart">Restart retrospective</button></div></div></div>
-        <div class="mel__panel"><p class="mel__eyebrow">Measured reasons for hope</p><h3>Useful enrichment survived the surprise.</h3><p class="mel__muted">These are encouraging property profiles from the separate retrospective fifty. Their measurements never transfer to ${esc(candidate.molecule_id)}.</p><div class="mel__hope">${hope}</div></div>
+        <div class="mel__panel"><p class="mel__eyebrow">Measured reasons for hope</p><h3>Useful enrichment survived the surprise.</h3><p class="mel__muted">These are lexicographically first eligible initial passes from the committed ${esc(sourceLabel(state)).toLowerCase()}. Their measurements never transfer to ${esc(candidate.molecule_id)}.</p><div class="mel__hope">${hope}</div></div>
       </div>`;
     }
 
@@ -325,7 +359,7 @@ export default {
       root.querySelectorAll("[data-union-id], [data-tray-id], [data-point-id], [data-caco-id], [data-inspect-example]").forEach((element) => {
         const activate = () => {
           const id = element.dataset.unionId || element.dataset.trayId || element.dataset.pointId || element.dataset.cacoId || element.dataset.inspectExample;
-          setState({inspected_molecule_id: id});
+          setState({inspected_molecule_id: id, inspected_by_visitor: true});
         };
         element.addEventListener("click", activate);
         if (element.tagName.toLowerCase() === "circle") {
@@ -352,7 +386,9 @@ export default {
       const tray = root.querySelector(".mel__tray");
       if (tray) tray.outerHTML = trayMarkup(nominations.nominations[fitKey], {...getState(), active_fit_index:index, active_fit_key:fitKey}, "prediction");
       const host = root.querySelector("[data-card-host]");
-      if (host) host.innerHTML = evidenceCard(data.retrospective.unanimous_id, {...getState(), active_fit_index:index, active_fit_key:fitKey, inspected_molecule_id:data.retrospective.unanimous_id}, fitKey);
+      const current = getState();
+      const inspected = current.inspected_by_visitor ? current.inspected_molecule_id : data.retrospective.unanimous_id;
+      if (host) host.innerHTML = evidenceCard(inspected, {...current, active_fit_index:index, active_fit_key:fitKey, inspected_molecule_id:inspected}, fitKey);
       root.querySelectorAll("[data-tray-id]").forEach((element) => element.addEventListener("click", () => setState({inspected_molecule_id:element.dataset.trayId})));
     }
 
@@ -363,23 +399,34 @@ export default {
           const index = Number(slider.value);
           updateFitLocal(index);
           window.clearTimeout(fitDebounce);
-          fitDebounce = window.setTimeout(() => setState({active_fit_index:index, active_fit_key:nominations.fit_keys[index], inspected_molecule_id:data.retrospective.unanimous_id, fit_explored:true}), 180);
+          fitDebounce = window.setTimeout(() => setState({active_fit_index:index, active_fit_key:nominations.fit_keys[index], inspected_molecule_id:getState().inspected_by_visitor ? getState().inspected_molecule_id : data.retrospective.unanimous_id, fit_explored:true}), 180);
         });
         slider.addEventListener("change", () => {
           window.clearTimeout(fitDebounce);
           const index = Number(slider.value);
-          setState({active_fit_index:index, active_fit_key:nominations.fit_keys[index], inspected_molecule_id:data.retrospective.unanimous_id, fit_explored:true});
+          setState({active_fit_index:index, active_fit_key:nominations.fit_keys[index], inspected_molecule_id:getState().inspected_by_visitor ? getState().inspected_molecule_id : data.retrospective.unanimous_id, fit_explored:true});
         });
       }
-      const commit = root.querySelector('[data-action="commit"]');
-      if (commit) commit.addEventListener("click", () => setState({selection_kind:"ensemble", committed_ids:[...nominations.ensemble_ids], evidence_stage:"prediction", inspected_molecule_id:data.retrospective.unanimous_id}));
+      const commit = (kind) => {
+        const current = getState();
+        const fitKey = nominations.fit_keys[Number(current.active_fit_index || 0)];
+        const ids = kind === "active_fit" ? nominations.nominations[fitKey] : nominations.ensemble_ids;
+        const inspected = ids.includes(current.inspected_molecule_id) ? current.inspected_molecule_id : ids[0];
+        setState({selection_kind:kind, committed_fit_key:kind === "active_fit" ? fitKey : null, committed_ids:[...ids], evidence_stage:"prediction", inspected_molecule_id:inspected, selection_notice: inspected === current.inspected_molecule_id ? null : `The inspected molecule was outside this shortlist; ${inspected} is its deterministic first-slot fallback.`});
+      };
+      const fitCommit = root.querySelector('[data-action="commit-fit"]');
+      if (fitCommit) fitCommit.addEventListener("click", () => commit("active_fit"));
+      const ensembleCommit = root.querySelector('[data-action="commit-ensemble"]');
+      if (ensembleCommit) ensembleCommit.addEventListener("click", () => commit("ensemble"));
+      const unanimous = root.querySelector('[data-action="focus-unanimous"]');
+      if (unanimous) unanimous.addEventListener("click", () => setState({inspected_molecule_id:data.retrospective.unanimous_id, inspected_by_visitor:false}));
     }
 
     function animateMeasurement(force = false) {
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches && !force) return;
       const svg = root.querySelector('[data-testid="property-plane"]');
       if (!svg || getState().evidence_stage !== "measured") return;
-      const geometry = plotGeometry();
+      const geometry = plotGeometry(committedIds(getState()));
       const start = performance.now();
       const duration = 850;
       const tick = (now) => {
@@ -427,7 +474,9 @@ export default {
         active_fit_index: 0,
         active_fit_key: nominations.fit_keys[0],
         inspected_molecule_id: data.retrospective.unanimous_id,
+        inspected_by_visitor: false,
         selection_kind: null,
+        committed_fit_key: null,
         committed_ids: [],
         evidence_stage: "nomination",
         measurements_revealed: false,
@@ -450,7 +499,7 @@ export default {
         body = retainedMarkup(state) + returnMarkup(state);
       } else if (state.caco_revealed) {
         body = selectionShell(state) + retainedMarkup(state) + cacoMarkup(state);
-      } else if (state.selection_kind === "ensemble") {
+      } else if (state.selection_kind) {
         body = selectionShell(state) + retainedMarkup(state) + outcomeMarkup(state);
       } else {
         body = selectionShell(state) + retainedMarkup(state) + nominationMarkup(state);
@@ -458,8 +507,8 @@ export default {
       root.innerHTML = `<div class="mel__header"><div><p class="mel__eyebrow">Before You Make It · fifty experiments · twenty-five maps</p><h2>Which fifty survive a changing map?</h2><p class="mel__muted">MoleculeEvidenceLens keeps one identity anchored while the source of evidence changes.</p></div><div class="mel__progress" aria-label="${stageIndex(state)} of 9 required actions">${progress(state)}</div></div>${body}`;
       bindSelection(state);
       bindInspection();
-      if (state.candidate_id && !state.returned_to_proposal && !state.caco_revealed && state.selection_kind !== "ensemble") bindNomination(state);
-      if (state.selection_kind === "ensemble" && !state.caco_revealed && !state.returned_to_proposal) bindOutcome(state, shouldAnimate);
+      if (state.candidate_id && !state.returned_to_proposal && !state.caco_revealed && !state.selection_kind) bindNomination(state);
+      if (state.selection_kind && !state.caco_revealed && !state.returned_to_proposal) bindOutcome(state, shouldAnimate);
       if (state.caco_revealed && !state.returned_to_proposal) bindCaco();
       if (state.returned_to_proposal) bindReturn();
     }

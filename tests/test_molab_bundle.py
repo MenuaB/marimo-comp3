@@ -30,6 +30,10 @@ def test_browser_bundle_preserves_pinned_experience_facts() -> None:
     assert payload["retrospective"]["ensemble_target_passes"] == 41
     assert payload["retrospective"]["caco_paired"] == 38
     assert payload["depictions"]["encoding"] == "gzip+base64"
+    assert payload["generation"]["chemistry_audit_counts"]["featured_candidates"] == 23
+    assert payload["generation"]["default_candidate_id"] != "C-0033"
+    assert len(payload["candidate_audit"]) == 27
+    assert payload["provenance"]["candidate_audit_sha256"]
     assert set(payload["depictions"]["items"]) == set(payload["evidence_records"])
     assert set(payload["widget_assets"]) == {"lens_js", "lens_css", "scale_js", "scale_css"}
 

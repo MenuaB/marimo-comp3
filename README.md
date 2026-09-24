@@ -47,7 +47,9 @@ python3.13 -m venv .venv
 The portable notebook never fetches its payload from mutable `main`. Keep
 `before_you_make_it_wasm.py` and `data/molab_bundle.json` together when making
 bundle changes, then update the pinned commit and digest in the portable entry
-point.
+point. The phase 1–3 local bundle is intentionally not published by this task;
+the checked-in route is the validated artifact until an authorized publication
+updates the immutable fallback.
 
 ## What is custom
 
@@ -56,7 +58,7 @@ point.
 identity coherent across:
 
 - the fixed-order 256-molecule nomination union while one fit's fifty changes;
-- an explicit ensemble-fifty commitment;
+- an explicit active-fit or ensemble-fifty commitment;
 - same-ID predicted-to-measured motion in LogD/KSOL space;
 - a separate Caco-2 view for that unchanged fifty;
 - the retained generated candidate and candidate-specific next-assay record.
@@ -74,13 +76,25 @@ endpoint coverage. Both components synchronize discrete state to Python via
   fits per endpoint.
 - Fit-specific top-fifty lists nominate 256 distinct molecules; only
   `E-0024329` appears in all 25.
-- The ensemble fifty yields 41 measured target passes. Exact random expectation:
+- The ensemble fifty yields 41 measured target passes; related saved-fit
+  shortlists span 31–42 passes. Exact random expectation:
   `50 × 905 / 2,160 = 20.949074…`.
 - `E-0024329` has ensemble-predicted LogD 1.999 and KSOL 317.812 µM, versus
   measured LogD 0.70 and KSOL 269.0 µM. Unanimous nomination is not guaranteed
   measured success, while the complete selection remains usefully enriched.
-- The same fifty contain 38 paired numeric Caco-2 records; 33 belong to the 41
-  initial target passes. Missing evidence is not failure or zero.
+- The same ensemble fifty contain 38 paired numeric Caco-2 records; 33 belong
+  to the 41 initial target passes. Every committed saved fit derives these
+  quantities from its own IDs; missing evidence is not failure or zero.
+
+## Generated-proposal chemistry audit
+
+The cached run has 96 raw samples, 27 RDKit-parseable candidate structures, 23
+single-component/presentation-eligible candidates, and four unresolved
+multi-component candidates. Raw generated SMILES are retained in
+`candidate_audit`. Parsing is not presented as chemical validity: `C-0033`,
+whose raw sample ends in neutral `.Cl`, is preserved with an explicit warning
+but excluded from the featured proposal gallery. Depictions and descriptors for
+every featured candidate use the same audited single-component structure.
 
 The fits share a method and overlapping training data. They are selection
 sensitivity views, not independent experts or calibrated uncertainty. The

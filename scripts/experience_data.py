@@ -10,6 +10,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from rdkit import Chem
+from rdkit.Chem import Crippen, Descriptors, Lipinski
 from rdkit.Chem.Draw import rdMolDraw2D
 
 from scripts.notebook_data import (
@@ -74,8 +75,91 @@ def load_pinned_generation() -> tuple[pd.DataFrame, dict[str, object], list[dict
             raise ValueError("Candidate seed provenance mismatch")
         if pd.notna(candidate["measured_LogD"]) or pd.notna(candidate["measured_KSOL_uM"]):
             raise ValueError("Proposal carries invented experimental evidence")
-    candidates["SMILES"] = candidates["smiles"]
+    # ``smiles`` is retained for historical compatibility; the explicit field
+    # prevents a standardized presentation structure ever being mistaken for
+    # the generated raw sample.
+    candidates["raw_smiles"] = candidates["smiles"]
+    candidates["SMILES"] = candidates["raw_smiles"]
     return candidates, manifest, training_seeds()
+
+
+_NEUTRAL_STANDALONE_COUNTERIONS = {"Cl", "Br", "I", "F"}
+
+
+def audit_generated_candidate(candidate: dict[str, object]) -> dict[str, object]:
+    """Audit a cached raw sample without changing or concealing raw SMILES."""
+    raw_smiles = str(candidate["raw_smiles"])
+    molecule = Chem.MolFromSmiles(raw_smiles, sanitize=False)
+    audit: dict[str, object] = {
+        "candidate_id": str(candidate["candidate_id"]), "raw_smiles": raw_smiles,
+        "parsed": molecule is not None, "sanitized": False, "fragment_count": 0,
+        "fragment_formal_charges": [], "fragment_heavy_atom_counts": [],
+        "total_formal_charge": None, "counterion_or_disconnected_fragment": False,
+        "standardized_parent_smiles": None, "depiction_smiles": None,
+        "descriptor_smiles": None, "assigned_stereocenter_count": 0,
+        "unassigned_stereocenter_count": 0, "chemistry_warnings": [],
+        "presentation_eligible": False, "chemistry_status": "parse_failed",
+        "computed_descriptors": None,
+    }
+    if molecule is None:
+        audit["chemistry_warnings"] = ["RDKit could not parse the raw generated SMILES"]
+        return audit
+    try:
+        Chem.SanitizeMol(molecule)
+    except Exception as exc:
+        audit["chemistry_warnings"] = [f"RDKit sanitization failed: {exc}"]
+        return audit
+    audit["sanitized"] = True
+    fragments = Chem.GetMolFrags(molecule, asMols=True, sanitizeFrags=False)
+    charges = [sum(atom.GetFormalCharge() for atom in fragment.GetAtoms()) for fragment in fragments]
+    heavy = [fragment.GetNumHeavyAtoms() for fragment in fragments]
+    audit.update({"fragment_count": len(fragments), "fragment_formal_charges": charges,
+                  "fragment_heavy_atom_counts": heavy, "total_formal_charge": sum(charges)})
+    if len(fragments) != 1:
+        standalone = []
+        for fragment in fragments:
+            symbols = [atom.GetSymbol() for atom in fragment.GetAtoms()]
+            charge = sum(atom.GetFormalCharge() for atom in fragment.GetAtoms())
+            if len(symbols) == 1 and symbols[0] in _NEUTRAL_STANDALONE_COUNTERIONS and charge == 0:
+                standalone.append(symbols[0])
+        audit["counterion_or_disconnected_fragment"] = True
+        audit["chemistry_warnings"] = [
+            ("neutral standalone halogen fragment(s) " + ", ".join(standalone) + " are unresolved")
+            if standalone else "disconnected fragments are not presented as a single chemical entity"
+        ]
+        audit["chemistry_status"] = (
+            "parse_valid_multicomponent_balanced" if sum(charges) == 0 and not standalone
+            else "parse_valid_multicomponent_unresolved"
+        )
+        return audit
+    presentation_smiles = Chem.MolToSmiles(molecule, isomericSmiles=True)
+    centers = Chem.FindMolChiralCenters(molecule, includeUnassigned=True, includeCIP=True)
+    audit.update({
+        "depiction_smiles": presentation_smiles, "descriptor_smiles": presentation_smiles,
+        "assigned_stereocenter_count": sum(label != "?" for _, label in centers),
+        "unassigned_stereocenter_count": sum(label == "?" for _, label in centers),
+        "presentation_eligible": True, "chemistry_status": "parse_valid_single_component",
+        "computed_descriptors": {
+            "molecular_weight_Da": round(float(Descriptors.MolWt(molecule)), 4),
+            "rdkit_clogp": round(float(Crippen.MolLogP(molecule)), 4),
+            "tpsa_A2": round(float(Descriptors.TPSA(molecule)), 4),
+            "hbd": int(Lipinski.NumHDonors(molecule)), "hba": int(Lipinski.NumHAcceptors(molecule)),
+        },
+    })
+    return audit
+
+
+def audit_generated_candidates(candidates: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, int]]:
+    """Return deterministic per-candidate chemistry audit records and counts."""
+    audits = pd.DataFrame(audit_generated_candidate(row) for row in candidates.to_dict("records"))
+    audits = audits.sort_values("candidate_id", kind="stable").reset_index(drop=True)
+    return audits, {
+        "raw_samples": int(len(candidates)),
+        "rdkit_parseable_samples": int(audits["parsed"].sum()),
+        "single_component_candidates": int((audits["fragment_count"] == 1).sum()),
+        "unresolved_multicomponent_candidates": int((audits["fragment_count"] > 1).sum()),
+        "presentation_eligible_candidates": int(audits["presentation_eligible"].sum()),
+    }
 
 
 def evidence_accounting() -> dict[str, object]:
@@ -167,6 +251,7 @@ def build_molecule_evidence_records(
     nomination_data: dict[str, object],
     candidates: pd.DataFrame,
     seeds: list[dict[str, object]],
+    candidate_audits: pd.DataFrame | None = None,
 ) -> dict[str, object]:
     """Join identity, provenance, evidence states, and verified depictions."""
     train = pd.read_csv(DATA / "expansion_data_train.csv").rename(
@@ -253,22 +338,31 @@ def build_molecule_evidence_records(
         official_canonical_to_id[
             Chem.MolToSmiles(molecule, isomericSmiles=True)
         ] = str(row.molecule_id)
+    audits_by_id = (
+        {} if candidate_audits is None else candidate_audits.set_index("candidate_id").to_dict("index")
+    )
     for candidate in candidates.to_dict("records"):
         candidate_id = str(candidate["candidate_id"])
+        audit = audits_by_id.get(candidate_id)
+        if audit is not None and not audit["presentation_eligible"]:
+            continue
         canonical = str(candidate["canonical_isomeric_smiles"])
         rediscovery_id = official_canonical_to_id.get(canonical)
+        presentation_smiles = str(audit["depiction_smiles"]) if audit else str(candidate["raw_smiles"])
         records[candidate_id] = {
             "molecule_id": candidate_id,
             "role": "generated_proposal",
             "seed_id": str(candidate["seed_id"]),
-            "smiles": str(candidate["smiles"]),
-            "canonical_isomeric_smiles": canonical,
+            "raw_smiles": str(candidate["raw_smiles"]),
+            "smiles": presentation_smiles,
+            "canonical_isomeric_smiles": presentation_smiles,
+            "chemistry": audit,
             "cluster": None,
             "nearest_training_id": str(candidate["nearest_training_id"]),
             "nearest_training_similarity": float(candidate["nearest_training_similarity"]),
             "ensemble_prediction": None,
             "measurement_summary": None,
-            "computed_descriptors": candidate["computed_descriptors"],
+            "computed_descriptors": audit["computed_descriptors"] if audit else candidate["computed_descriptors"],
             "endpoints": [
                 {**definition, "status": "missing", "value": None, "bound": None}
                 for definition in ENDPOINT_DEFINITIONS
@@ -276,7 +370,7 @@ def build_molecule_evidence_records(
             "rediscovery_id": rediscovery_id,
             "source": "Cached ChemLlama seed-prompt output; experiments unknown",
         }
-        depictions[candidate_id] = _structure_svg(str(candidate["smiles"]))
+        depictions[candidate_id] = _structure_svg(presentation_smiles)
 
     if len(records) != len(set(records)) or set(depictions) != set(records):
         raise ValueError("Evidence-record identity map is inconsistent")
@@ -304,8 +398,23 @@ def build_visual_payload(force: bool = False) -> dict[str, object]:
     """Assemble the versioned native/portable payload from one tested path."""
     cohort, _, preparation_manifest = prepare(force=force)
     candidates, generation_manifest, seeds = load_pinned_generation()
+    candidate_audits, chemistry_counts = audit_generated_candidates(candidates)
+    # The audit table covers the 27 syntactically accepted candidates; retain
+    # the full run denominator so the notebook never implies all 96 samples
+    # were chemistry-validated structures.
+    chemistry_counts["raw_samples"] = int(generation_manifest["counts"]["raw"])
+    eligible_ids = candidate_audits.loc[
+        candidate_audits.presentation_eligible, "candidate_id"
+    ].tolist()
+    featured_candidates = candidates.loc[
+        candidates.candidate_id.isin(eligible_ids)
+    ].sort_values(["seed_id", "raw_sample_index", "candidate_id"], kind="stable")
+    if len(featured_candidates) != len(eligible_ids):
+        raise ValueError("Candidate audit/feature eligibility identity mismatch")
     nominations = build_fit_nomination_data(cohort, force=force)
-    evidence = build_molecule_evidence_records(cohort, nominations, candidates, seeds)
+    evidence = build_molecule_evidence_records(
+        cohort, nominations, featured_candidates, seeds, candidate_audits
+    )
     ensemble = shortlist(cohort, 50)
     reference = active_budget_reference(cohort, 50)
     fit_passes = {}
@@ -317,7 +426,7 @@ def build_visual_payload(force: bool = False) -> dict[str, object]:
     selected_caco = ensemble.dropna(
         subset=["Caco-2 Permeability Papp A>B", "Caco-2 Permeability Efflux"]
     )
-    candidate_records = candidates[
+    candidate_records = featured_candidates[
         [
             "candidate_id",
             "seed_id",
@@ -327,6 +436,13 @@ def build_visual_payload(force: bool = False) -> dict[str, object]:
             "raw_sample_index",
         ]
     ].copy()
+    candidate_records = candidate_records.merge(
+        candidate_audits[
+            ["candidate_id", "raw_smiles", "depiction_smiles", "descriptor_smiles", "chemistry_status", "chemistry_warnings", "presentation_eligible"]
+        ],
+        on="candidate_id",
+        validate="one_to_one",
+    )
     payload: dict[str, object] = {
         "schema_version": VISUAL_SCHEMA_VERSION,
         "scale_landmarks": scale_landmarks(),
@@ -339,6 +455,7 @@ def build_visual_payload(force: bool = False) -> dict[str, object]:
         },
         "seeds": seeds,
         "candidates": _json_records(candidate_records),
+        "candidate_audit": _json_records(candidate_audits),
         "generation": {
             "run_id": generation_manifest["generation_run_id"],
             "counts": generation_manifest["counts"],
@@ -347,6 +464,11 @@ def build_visual_payload(force: bool = False) -> dict[str, object]:
             "prompt_semantics": generation_manifest["config"]["prompt_semantics"],
             "candidate_sha256": generation_manifest["candidate_sha256"],
             "raw_sha256": generation_manifest["raw_sha256"],
+            "chemistry_audit_counts": {
+                **chemistry_counts,
+                "featured_candidates": int(len(featured_candidates)),
+            },
+            "default_candidate_id": str(featured_candidates.iloc[0].candidate_id),
         },
         "nominations": nominations,
         "evidence_records": evidence["records"],
@@ -392,6 +514,9 @@ def build_visual_payload(force: bool = False) -> dict[str, object]:
     payload["provenance"]["records_sha256"] = _canonical_json_hash(
         evidence["records"]
     )
+    payload["provenance"]["candidate_audit_sha256"] = _canonical_json_hash(
+        payload["candidate_audit"]
+    )
     # Force a strict JSON traversal here so non-finite values fail before a bundle is written.
     json.dumps(payload, allow_nan=False)
     return payload
@@ -423,6 +548,21 @@ def load_visual_payload(path: Path | None = None) -> dict[str, object]:
         payload["evidence_records"]
     ):
         raise ValueError("Visual payload evidence-record hash mismatch")
+    if payload["provenance"].get("candidate_audit_sha256") != _canonical_json_hash(
+        payload.get("candidate_audit")
+    ):
+        raise ValueError("Visual payload candidate-audit hash mismatch")
+    audits = {row["candidate_id"]: row for row in payload.get("candidate_audit", [])}
+    featured_ids = [candidate["candidate_id"] for candidate in payload.get("candidates", [])]
+    if not featured_ids or any(
+        candidate_id not in audits or not audits[candidate_id]["presentation_eligible"]
+        for candidate_id in featured_ids
+    ):
+        raise ValueError("Visual payload includes a chemistry-ineligible proposal")
+    if len({audits[candidate_id]["depiction_smiles"] for candidate_id in featured_ids}) != len(featured_ids):
+        raise ValueError("Visual payload has duplicate featured presentation structures")
+    if payload["generation"].get("default_candidate_id") not in featured_ids:
+        raise ValueError("Visual payload default proposal is not presentation-eligible")
     record_ids = set(payload["evidence_records"])
     if set(payload["depictions"]["items"]) != record_ids:
         raise ValueError("Visual payload depiction/record identity mismatch")

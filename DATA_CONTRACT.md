@@ -76,6 +76,15 @@ evidence-record sections; the native loader rejects schema, source, identity,
 derived-hash, or widget-asset mismatch. JSON null is the only absence value;
 non-finite constants are rejected.
 
+`candidate_audit` preserves every RDKit-parseable candidate's raw generated
+SMILES and records parse/sanitization outcome, fragment count and charges,
+heavy-atom counts, disconnected-fragment/counterion status, presentation and
+descriptor SMILES, stereocenter counts, warnings, eligibility, and chemistry
+status. `candidates` is the deterministic featured subset only: sanitized,
+single-component, provenance-complete, unique presentation structures. A
+neutral standalone halogen component is unresolved, not an automatically
+accepted salt or standardized parent.
+
 ## ChemLlama proposal contract
 
 The viewing notebook reads cached candidate artifacts only; it never imports an
@@ -87,7 +96,7 @@ SMILES-continuation prompts make no undocumented conditioning claim.
 Every candidate row must contain:
 
 ```text
-candidate_id, seed_id, smiles, canonical_isomeric_smiles,
+candidate_id, seed_id, raw_smiles, smiles, canonical_isomeric_smiles,
 checkpoint_id, checkpoint_revision, prompt, random_seed, decoding_settings,
 generation_run_id, raw_sample_index, validation_status, rejection_reason,
 similarity_to_seed, nearest_training_id, nearest_training_similarity,
