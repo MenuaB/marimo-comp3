@@ -21,9 +21,9 @@ def _():
     from pathlib import Path
 
     local_bundle = Path(__file__).resolve().parent / "data" / "molab_bundle.json"
-    bundle_revision = "20c384088c9154ba80e7adf3280542053633664d"
+    bundle_revision = "99903922b673e9607b69de6dd5e45a9168f539cb"
     local_bundle_sha256 = "8eb110a5644b383c7ad4a4c755f27d83b74de89b1172acc3c7476508fb681055"
-    published_bundle_sha256 = "ec008e2c70353f27afdc9625fbd975e00eeceb174de96dca4488dcae683dd26d"
+    published_bundle_sha256 = "8eb110a5644b383c7ad4a4c755f27d83b74de89b1172acc3c7476508fb681055"
     if local_bundle.is_file():
         bundle_bytes = local_bundle.read_bytes()
         expected_sha256 = local_bundle_sha256

@@ -53,7 +53,5 @@ claims.
 ## Publication status
 
 The checked-in visual-v3 notebook and bundle contain the phase 1–3 changes.
-The portable entry point verifies that local artifact and retains the existing
-immutable, SHA-256-verified GitHub fallback for the previously published
-bundle. Publishing the rebuilt bundle is outside this task's authorization, so
-the remote-only route must be updated and revalidated after publication.
+The portable entry point verifies the local artifact and its immutable,
+SHA-256-verified GitHub fallback at commit `9990392`.

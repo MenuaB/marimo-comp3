@@ -47,9 +47,8 @@ python3.13 -m venv .venv
 The portable notebook never fetches its payload from mutable `main`. Keep
 `before_you_make_it_wasm.py` and `data/molab_bundle.json` together when making
 bundle changes, then update the pinned commit and digest in the portable entry
-point. The phase 1–3 local bundle is intentionally not published by this task;
-the checked-in route is the validated artifact until an authorized publication
-updates the immutable fallback.
+point. The phase 1–3 fallback is pinned to its published immutable commit and
+the matching SHA-256 digest.
 
 ## What is custom
 
